@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "218137784453",
+    "project_id": "prize-bond-tracker",
+    "storage_bucket": "prize-bond-tracker.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:218137784453:android:d75bb42fbf28192683f9ec",
+        "android_client_info": {
+          "package_name": "com.example.prizebondtracker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCifSsDE_vRLu0VK6S-LC1k08T3k_skNuI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

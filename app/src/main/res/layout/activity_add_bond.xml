@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/bg_light"
+    tools:context=".AddBondActivity">
+
+    <!-- Top App Bar -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/primary_green"
+        app:title="Add New Bonds"
+        app:titleTextColor="@color/white"
+        app:navigationIcon="@drawable/ic_arrow_back"
+        android:elevation="4dp"/>
+
+    <!--
+    ========================================================
+    HOW TO SWITCH ENTRY MODES (Instructions for developer)
+    ========================================================
+    The three entry modes are organized using the TabLayout below the main toolbar.
+
+    The user can switch modes by clicking the labels in this TabLayout:
+    1. Manual Entry
+    2. Bulk Entry
+    3. Add via Picture
+
+    The corresponding Java code (AddBondActivity.java) must listen for
+    TabLayout selections and change the visibility of the views
+    (manual_entry_view, bulk_entry_view, ocr_entry_view) inside the FrameLayout.
+    ========================================================
+    -->
+
+    <!-- Tabs for Entry Modes -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        app:tabIndicatorColor="@color/primary_green"
+        app:tabSelectedTextColor="@color/primary_green"
+        app:tabTextColor="@color/text_secondary"
+        android:elevation="2dp">
+
+        <!-- Tab 0: Manual Entry (Default) -->
+        <com.google.android.material.tabs.TabItem
+
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Manual Entry" />
+
+        <!-- Tab 1: Bulk Entry -->
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Bulk Entry" />
+
+        <!-- Tab 2: Add via Picture -->
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Add via Picture" />
+
+    </com.google.android.material.tabs.TabLayout>
+
+    <!-- Content Area (Simulating ViewPager/Fragment Container) -->
+    <FrameLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- - START MANUAL ENTRY MODE (Default View) - -->
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/manual_entry_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="16dp"
+            android:visibility="visible">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Enter a single bond's details below."
+                    android:layout_marginBottom="16dp"
+                    android:textColor="@color/text_primary"/>
+
+                <!-- 1. Bond Number -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Bond Number (e.g., A-123456)"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+                    app:boxCornerRadiusTopStart="8dp"
+                    app:boxCornerRadiusTopEnd="8dp"
+                    app:boxCornerRadiusBottomStart="8dp"
+                    app:boxCornerRadiusBottomEnd="8dp">>
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etBondNumber"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textCapCharacters"
+                        android:maxLength="10"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- 2. Bond Denomination (Spinner/Dropdown) -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Denomination"
+                    android:layout_marginTop="16dp"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu">
+                    <AutoCompleteTextView
+                        android:id="@+id/actDenomination"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none"
+                        tools:text="Rs. 750"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- 3. Purchase Date (Optional) -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Purchase Date (Optional)"
+                    android:layout_marginTop="16dp"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+                    app:endIconDrawable="@drawable/ic_calender"
+                    app:endIconMode="custom">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etPurchaseDate"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="date"
+                        android:focusable="false"
+                        android:clickable="true"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- 4. Bond Series (Optional) -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Bond Series (Optional)"
+                    android:layout_marginTop="16dp"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etBondSeries"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textCapCharacters"
+                        android:maxLength="2"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- 5. Draw City/Region (Optional) -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Draw City/Region (Optional)"
+                    android:layout_marginTop="16dp"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etDrawCity"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textCapWords"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Save Button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSaveManual"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:text="Save Bond"
+                    android:layout_marginTop="32dp"
+                    android:backgroundTint="@color/primary_green"
+                    app:cornerRadius="12dp"
+                    />
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+        <!-- - END MANUAL ENTRY MODE - -->
+
+        <!-- - START BULK ENTRY MODE - -->
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/bulk_entry_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="16dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Add a series of sequential bonds quickly."
+                    android:layout_marginBottom="16dp"
+                    android:textColor="@color/text_primary"/>
+
+                <!-- Denomination (Required for Bulk) -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Denomination"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu">
+                    <AutoCompleteTextView
+                        android:id="@+id/actDenominationBulk"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none"
+                        tools:text="Rs. 750"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Starting Bond Number -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Starting Bond Number (e.g., A-123400)"
+                    android:layout_marginTop="16dp"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etStartBondNumber"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textCapCharacters"
+                        android:maxLength="10"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Ending Bond Number -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Ending Bond Number (e.g., A-123450)"
+                    android:layout_marginTop="16dp"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etEndBondNumber"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textCapCharacters"
+                        android:maxLength="10"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    android:id="@+id/tvBulkCount"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="You are adding: 0 bonds"
+                    android:textStyle="italic"
+                    android:layout_marginTop="16dp"
+                    android:textColor="@color/text_secondary"/>
+
+                <!-- Save Button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSaveBulk"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:textColor="@color/white"
+                    android:text="Generate and Save Bonds"
+                    android:layout_marginTop="32dp"
+                    android:backgroundTint="@color/primary_green"
+                    app:cornerRadius="12dp"
+                    app:icon="@drawable/ic_bulk_add"/>
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+        <!-- - END BULK ENTRY MODE - -->
+
+        <!-- - START OCR ENTRY MODE - -->
+        <LinearLayout
+            android:id="@+id/ocr_entry_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:padding="32dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Add via Picture"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginBottom="24dp"/>
+
+            <ImageView
+                android:id="@+id/ivPreviewImage"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:background="@drawable/border_dashed"
+                android:scaleType="centerInside"
+                android:contentDescription="Bond Image Preview"
+                android:src="@drawable/ic_camera"
+                android:layout_marginBottom="24dp"
+                app:tint="@color/text_secondary" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCaptureImage"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:text="Capture or Upload Picture"
+                android:backgroundTint="@color/primary_green"
+                app:cornerRadius="12dp"
+                app:icon="@drawable/ic_camera"/>
+
+            <TextView
+                android:id="@+id/tvExtractedData"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Extracted Data will appear here after scanning..."
+                android:layout_marginTop="24dp"
+                android:textColor="@color/text_primary"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSaveOCR"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:text="Save Extracted Bonds"
+                android:textColor="@color/white"
+                android:layout_marginTop="32dp"
+                android:backgroundTint="@color/primary_green"
+                app:cornerRadius="12dp"
+                android:enabled="false"
+               />
+        </LinearLayout>
+        <!-- - END OCR ENTRY MODE - -->
+
+    </FrameLayout>
+</LinearLayout>

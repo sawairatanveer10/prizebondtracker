@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Base Card Style for Dashboard Grid -->
+    <style name="DashboardCard" parent="Widget.MaterialComponents.CardView">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_columnWeight">1</item>
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">4dp</item>
+        <item name="android:backgroundTint">@android:color/white</item>
+        <item name="strokeColor">@color/divider</item>
+        <item name="strokeWidth">0dp</item> <!-- Use shadow, not stroke, for clean look -->
+        <item name="android:foreground">?attr/selectableItemBackground</item>
+    </style>
+
+    <!-- Special Card Style for AI Recommendation (to make it stand out) -->
+    <style name="DashboardCard.AIHighlight" parent="DashboardCard">
+        <item name="cardElevation">8dp</item>
+        <item name="android:backgroundTint">@color/primary_green</item>
+        <item name="strokeWidth">0dp</item>
+    </style>
+
+    <!-- Inner layout and text styles... -->
+    <style name="CardInner">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:gravity">center_horizontal</item>
+        <item name="android:paddingTop">16dp</item>
+        <item name="android:paddingBottom">16dp</item>
+        <item name="android:paddingStart">12dp</item>
+        <item name="android:paddingEnd">12dp</item>
+    </style>
+
+    <style name="CardTitle">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:layout_marginTop">10dp</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:textColor">@color/text_dark</item>
+    </style>
+
+    <style name="CardTitle.White" parent="CardTitle">
+        <item name="android:textColor">@color/text_light</item>
+    </style>
+
+    <!-- For icon inside each card -->
+    <style name="CardIcon">
+        <item name="android:layout_width">36dp</item>
+        <item name="android:layout_height">36dp</item>
+        <item name="android:tint">@color/primary_green</item>
+        <item name="android:layout_gravity">center_horizontal</item>
+    </style>
+
+    <style name="CardIcon.White" parent="CardIcon">
+        <item name="android:tint">@color/white</item>
+    </style>
+
+
+    <!-- For subtitle text under the title -->
+    <style name="CardSubtitle">
+        <item name="android:textSize">11sp</item>
+        <item name="android:alpha">0.7</item>
+        <item name="android:layout_marginTop">2dp</item>
+        <item name="android:textColor">@color/text_dark</item>
+        <item name="android:gravity">center_horizontal</item>
+    </style>
+
+    <style name="CardSubtitle.White" parent="CardSubtitle">
+        <item name="android:textColor">@color/white</item>
+        <item name="android:alpha">0.9</item>
+    </style>
+
+
+    <!-- ********************************************** -->
+    <!-- NEW STYLE: Defines the circular shape for the profile picture -->
+    <!-- ********************************************** -->
+    <style name="ShapeAppearanceOverlay.App.CornerSize50Percent" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+</resources>

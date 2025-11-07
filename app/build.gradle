@@ -1,0 +1,75 @@
+plugins {
+    id 'com.android.application'
+    id 'com.google.gms.google-services'
+}
+
+android {
+    namespace 'com.example.prizebondtracker'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId "com.example.prizebondtracker"
+        minSdk 24
+        targetSdk 36
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
+                    'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    buildFeatures {
+        viewBinding true
+    }
+}
+
+dependencies {
+    // 🔹 Core AndroidX + Material Design 3
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.activity:activity:1.9.3'
+    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+    implementation 'androidx.cardview:cardview:1.0.0'
+
+    // 🔹 Firebase (using BoM to manage versions)
+    implementation platform('com.google.firebase:firebase-bom:34.3.0')
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.firebase:firebase-firestore'
+    implementation 'com.google.firebase:firebase-messaging'
+
+    // 🔹 ML Kit Text Recognition (Latin) – correct dependency for OCR
+    implementation 'com.google.mlkit:text-recognition:16.0.1'
+
+    // 🔹 Optional (if you plan to use camera capture directly)
+    // implementation 'com.google.mlkit:vision-common:17.3.0'
+
+    // 🔹 PDF generation (iText)
+    implementation 'com.itextpdf:itext7-core:7.2.2'
+
+    // 🔹 Glide for image loading
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
+    implementation libs.vision.common
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'
+
+    // 🔹 Unit & UI Testing
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+
+
+    implementation 'androidx.activity:activity-ktx:1.9.3'
+
+}

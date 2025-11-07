@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginBottom="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Top Row: Bond Number, Denomination, and More/Edit Icon -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_centerVertical="true">
+                <!-- Bond Number -->
+                <TextView
+                    android:id="@+id/tvBondNumber"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:text="A-123456"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"/>
+                <!-- Purchase Date -->
+                <TextView
+                    android:id="@+id/tvPurchaseDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    tools:text="Purchased: 10/05/2023"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"/>
+            </LinearLayout>
+
+            <!-- Denomination Badge (Right Aligned) -->
+            <TextView
+                android:id="@+id/tvDenomination"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toStartOf="@id/btnMore"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="4dp"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/primary_green"
+                android:background="@drawable/bg_denomination_badge"
+                tools:text="Rs. 750"
+                android:layout_marginEnd="8dp"
+                android:layout_centerVertical="true"/>
+
+            <!-- More Options Button -->
+            <ImageButton
+                android:id="@+id/btnMore"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_alignParentEnd="true"
+                android:background="@null"
+                android:src="@drawable/ic_more_ver"
+                android:contentDescription="More options"
+                app:tint="@color/text_secondary"
+                android:layout_centerVertical="true"/>
+        </RelativeLayout>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/divider"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="12dp"/>
+
+        <!-- Bottom Row: Draw Status and AI Insight -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:baselineAligned="false">
+
+            <!-- 1. Draw Status (Left side, takes 60% of width) -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
+                android:orientation="vertical"
+                android:layout_marginEnd="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Current Status"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"/>
+
+                <TextView
+                    android:id="@+id/tvDrawStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="3dp"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_light"
+                    android:background="@drawable/bg_status_upcoming"
+                    tools:text="Upcoming Draw"/>
+            </LinearLayout>
+
+            <!-- 2. AI Insight (Right side, takes 40% of width) -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="AI Winning Chance"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@drawable/ic_up"
+                        android:contentDescription="AI Icon"
+                        app:tint="@color/primary_green"/>
+
+                    <TextView
+                        android:id="@+id/tvAiInsight"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        tools:text="High (12%)"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/primary_green"/>
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

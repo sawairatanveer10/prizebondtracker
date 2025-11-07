@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!-- 1. Solid fill (optional, usually transparent or light gray) -->
+    <solid
+        android:color="@android:color/transparent" />
+
+    <!-- 2. The Dashed Stroke (This creates the dashed line effect) -->
+    <stroke
+        android:width="2dp"
+        android:color="#CCCCCC"
+        android:dashWidth="10dp"
+        android:dashGap="8dp" />
+
+    <!-- 3. Rounded Corners -->
+    <corners
+        android:radius="12dp" />
+
+    <!-- 4. Padding inside the drawable (optional) -->
+    <padding
+        android:bottom="10dp"
+        android:left="10dp"
+        android:right="10dp"
+        android:top="10dp" />
+</shape>

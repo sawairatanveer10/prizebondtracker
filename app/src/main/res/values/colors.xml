@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 1. Primary Colors (Based on your dark green theme) -->
+    <color name="primary_green">#004D40</color> <!-- Deep Dark Green (Primary) -->
+    <color name="primary_light">#439D8A</color> <!-- Light Green variant for accents/highlights -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+
+    <!-- 2. Secondary/Accent Colors -->
+    <color name="ai_card_green">#00796B</color> <!-- A slightly brighter, yet still dark, teal-green for the AI card highlight -->
+
+    <!-- 3. Text Colors -->
+    <color name="text_primary">#212121</color> <!-- Dark gray/near black for main text -->
+    <color name="text_secondary">#757575</color> <!-- Standard gray for subtitle text -->
+    <color name="text_dark">#212121</color> <!-- Alias for text_primary used in some layouts -->
+    <color name="text_light">#FFFFFF</color> <!-- White text used on dark backgrounds -->
+
+    <!-- 4. Utility & Status Colors -->
+    <color name="bg_light">#F8F8F8</color> <!-- Off-White/Light Gray background for non-header content -->
+    <color name="divider_light">#E0E0E0</color> <!-- Light gray for separators -->
+    <color name="divider">#CFCFCF</color> <!-- Slightly darker gray for general divider lines -->
+    <color name="status_upcoming">#4CAF50</color> <!-- Vibrant green for active status -->
+    <color name="status_winner">#FFC107</color> <!-- Amber/Gold for winning status -->
+    <color name="status_announced">#9E9E9E</color> <!-- Neutral gray for announced status -->
+
+    <!-- 5. Navigation Color State List -->
+    <color name="bottom_nav_color_active">#004D40</color>
+    <color name="bottom_nav_color_inactive">#BDBDBD</color>
+    <color name="green">#4CAF50</color> <!-- or any shade you like -->
+
+    <color name="status_error">#B00020</color>
+    <!-- Accent Color for CTAs and Highlights -->
+    <color name="accent_blue">#2196F3</color>
+</resources>
