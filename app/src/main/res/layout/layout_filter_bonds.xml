@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <!-- Header -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Filter Bonds"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"/>
+
+    <!-- Denomination Dropdown -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu"
+        android:layout_marginTop="20dp">
+
+        <AutoCompleteTextView
+            android:id="@+id/filterDenomination"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Select denomination"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- City Dropdown -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu"
+        android:layout_marginTop="12dp">
+
+        <AutoCompleteTextView
+            android:id="@+id/filterCity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Select city"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Date Range -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/filterDateRange"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Select Date Range"
+        android:layout_marginTop="20dp"
+        android:backgroundTint="@color/primary_green"
+        android:textColor="@color/white"/>
+
+    <!-- Reset Filters -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnResetFilters"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Reset Filters"
+        android:layout_marginTop="20dp"
+        android:backgroundTint="@color/divider"
+        android:textColor="@color/text_primary"/>
+
+    <!-- Apply Filters -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnApplyFilters"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Apply Filters"
+        android:layout_marginTop="10dp"
+        android:backgroundTint="@color/primary_green"
+        android:textColor="@color/white"/>
+
+</LinearLayout>

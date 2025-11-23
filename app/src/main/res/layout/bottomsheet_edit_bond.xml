@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@drawable/bg_bottomsheet_rounded">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Edit Bond"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="16dp"/>
+
+        <EditText
+            android:id="@+id/etBondNumber"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Bond Number"
+            android:padding="12dp"
+            android:background="@drawable/bg_edittext"
+            android:textSize="15sp"/>
+
+        <EditText
+            android:id="@+id/etBondDenomination"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Denomination"
+            android:padding="12dp"
+            android:background="@drawable/bg_edittext"
+            android:textSize="15sp"
+            android:layout_marginTop="12dp"/>
+
+        <EditText
+            android:id="@+id/etBondCity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Draw City"
+            android:padding="12dp"
+            android:background="@drawable/bg_edittext"
+            android:textSize="15sp"
+            android:layout_marginTop="12dp"/>
+
+        <EditText
+            android:id="@+id/etBondSeries"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Series"
+            android:padding="12dp"
+            android:background="@drawable/bg_edittext"
+            android:textSize="15sp"
+            android:layout_marginTop="12dp"/>
+
+        <EditText
+            android:id="@+id/etBondPurchaseDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Purchase Date"
+            android:padding="12dp"
+            android:background="@drawable/bg_edittext"
+            android:textSize="15sp"
+            android:layout_marginTop="12dp"
+            android:focusable="false"
+            android:clickable="true"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnUpdateBond"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Save"
+            android:textAllCaps="false"
+            android:layout_marginTop="20dp"
+            android:backgroundTint="@color/primary_green"
+            android:textColor="@color/white"
+            app:cornerRadius="10dp"/>
+    </LinearLayout>
+</ScrollView>

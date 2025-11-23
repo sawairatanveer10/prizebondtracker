@@ -12,7 +12,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -28,6 +27,9 @@ public class SignupActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore firestore;
+
+    // 🔹 Use the same appId as AddBondActivity for consistency
+    private final String appId = "default-app-id";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,22 +78,26 @@ public class SignupActivity extends AppCompatActivity {
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        // Save profile to Firestore
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
                             String uid = user.getUid();
+
+                            // 🔹 Create user profile map
                             Map<String, Object> userMap = new HashMap<>();
                             userMap.put("uid", uid);
                             userMap.put("name", name);
                             userMap.put("email", email);
                             userMap.put("createdAt", System.currentTimeMillis());
 
-                            firestore.collection("users").document(uid)
+                            // 🔹 Save inside /artifacts/{appId}/users/{uid}
+                            firestore.collection("artifacts")
+                                    .document(appId)
+                                    .collection("users")
+                                    .document(uid)
                                     .set(userMap)
                                     .addOnSuccessListener(aVoid -> {
                                         progressDialog.dismiss();
                                         Toast.makeText(SignupActivity.this, "Account created", Toast.LENGTH_SHORT).show();
-                                        // Go to HomeActivity (implement this)
                                         startActivity(new Intent(SignupActivity.this, HomeActivity.class));
                                         finish();
                                     })

@@ -1,26 +1,39 @@
 package com.example.prizebondtracker;
 
 public class Bond {
-    private String bondNumber;
+    private String id;            // Firestore auto ID
+    private String number;
     private String denomination;
     private String purchaseDate;
-    private String drawStatus;
-    private String aiInsight;
+    private String series;
+    private String drawCity;
 
-    public Bond() {} // empty constructor (required for Firestore later)
+    public Bond() {}
 
-    public Bond(String bondNumber, String denomination, String purchaseDate,
-                String drawStatus, String aiInsight) {
-        this.bondNumber = bondNumber;
+    public Bond(String number, String denomination, String purchaseDate, String series, String drawCity) {
+        this.number = number;
         this.denomination = denomination;
         this.purchaseDate = purchaseDate;
-        this.drawStatus = drawStatus;
-        this.aiInsight = aiInsight;
+        this.series = series;
+        this.drawCity = drawCity;
     }
 
-    public String getBondNumber() { return bondNumber; }
-    public String getDenomination() { return denomination; }
-    public String getPurchaseDate() { return purchaseDate; }
-    public String getDrawStatus() { return drawStatus; }
-    public String getAiInsight() { return aiInsight; }
+    // Firestore ID
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+
+    public String getNumber() { return number != null ? number : ""; }
+    public void setNumber(String number) { this.number = number; }
+
+    public String getDenomination() { return denomination != null ? denomination : ""; }
+    public void setDenomination(String denomination) { this.denomination = denomination; }
+
+    public String getPurchaseDate() { return purchaseDate != null ? purchaseDate : ""; }
+    public void setPurchaseDate(String purchaseDate) { this.purchaseDate = purchaseDate; }
+
+    public String getSeries() { return series != null ? series : ""; }
+    public void setSeries(String series) { this.series = series; }
+
+    public String getDrawCity() { return drawCity != null ? drawCity : ""; }
+    public void setDrawCity(String drawCity) { this.drawCity = drawCity; }
 }

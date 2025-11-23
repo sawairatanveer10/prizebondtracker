@@ -173,6 +173,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="textCapWords"/>
+
+
+
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Save Button -->
@@ -251,6 +254,54 @@
                         android:layout_height="wrap_content"
                         android:inputType="textCapCharacters"
                         android:maxLength="10"/>
+                    <!-- Purchase Date (Optional) -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Purchase Date (Optional)"
+                        android:layout_marginTop="16dp"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+                        app:endIconDrawable="@drawable/ic_calender"
+                        app:endIconMode="custom">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etPurchaseDateBulk"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="date"
+                            android:focusable="false"
+                            android:clickable="true"/>
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Bond Series (Optional) -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Bond Series (Optional)"
+                        android:layout_marginTop="16dp"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etBondSeriesBulk"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textCapCharacters"
+                            android:maxLength="2"/>
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Draw City/Region (Optional) -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Draw City/Region (Optional)"
+                        android:layout_marginTop="16dp"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etDrawCityBulk"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textCapWords"/>
+                    </com.google.android.material.textfield.TextInputLayout>
+
+
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <TextView
@@ -297,15 +348,14 @@
                 android:layout_marginBottom="24dp"/>
 
             <ImageView
-                android:id="@+id/ivPreviewImage"
+                android:id="@+id/ivOCRPreview"
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
-                android:background="@drawable/border_dashed"
-                android:scaleType="centerInside"
-                android:contentDescription="Bond Image Preview"
-                android:src="@drawable/ic_camera"
-                android:layout_marginBottom="24dp"
-                app:tint="@color/text_secondary" />
+                android:layout_margin="8dp"
+                android:scaleType="fitCenter"
+                android:contentDescription="OCR Image Preview"
+                android:background="@android:color/darker_gray"
+                />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCaptureImage"

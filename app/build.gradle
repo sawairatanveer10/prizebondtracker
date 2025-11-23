@@ -62,6 +62,8 @@ dependencies {
     // 🔹 Glide for image loading
     implementation 'com.github.bumptech.glide:glide:4.16.0'
     implementation libs.vision.common
+    implementation libs.material
+    implementation libs.firebase.storage
     annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'
 
     // 🔹 Unit & UI Testing
