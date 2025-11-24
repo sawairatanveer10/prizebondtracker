@@ -1,11 +1,12 @@
 package com.example.prizebondtracker;
 
-import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
@@ -13,9 +14,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.util.Pair;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -34,7 +35,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-public class MyBondsActivity extends AppCompatActivity {
+public class MyBondsActivity extends Fragment {
 
     private RecyclerView recyclerView;
     private BondAdapter adapter;
@@ -45,55 +46,50 @@ public class MyBondsActivity extends AppCompatActivity {
     private LinearLayout emptyStateView;
     private TextView tvBondCount;
     private EditText etSearchBonds;
-    private MaterialButton btnFilter, btnSort;
+    private MaterialButton btnFilter, btnSort, btnAddFirstBond;
     private final String appId = "default-app-id"; // must match AddBondActivity
 
+    public MyBondsActivity() {}
+
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_my_bonds);
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.activity_my_bonds, container, false);
+    }
 
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        toolbar.setNavigationOnClickListener(v -> finish());
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        recyclerView = view.findViewById(R.id.recyclerViewBonds);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-        recyclerView = findViewById(R.id.recyclerViewBonds);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        emptyStateView = view.findViewById(R.id.emptyStateView);
+        tvBondCount = view.findViewById(R.id.tvBondCount);
 
-        emptyStateView = findViewById(R.id.emptyStateView);
-        tvBondCount = findViewById(R.id.tvBondCount);
+        etSearchBonds = view.findViewById(R.id.etSearchBonds);
+        btnFilter = view.findViewById(R.id.btnFilter);
+        btnSort = view.findViewById(R.id.btnSort);
+        btnAddFirstBond = view.findViewById(R.id.btnAddFirstBond);
 
-        etSearchBonds = findViewById(R.id.etSearchBonds);
-        btnFilter = findViewById(R.id.btnFilter);
-        btnSort = findViewById(R.id.btnSort);
-
-        adapter = new BondAdapter(bondList, MyBondsActivity.this);
+        adapter = new BondAdapter(bondList, getActivity());
         recyclerView.setAdapter(adapter);
 
         db = FirebaseFirestore.getInstance();
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
-        // Open filter bottom sheet
         btnFilter.setOnClickListener(v -> showFilterBottomSheet());
-
-        // Sort dialog
         btnSort.setOnClickListener(v -> showSortDialog());
 
-        // Search as user types
         etSearchBonds.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) { filterBonds(s.toString()); }
             @Override public void afterTextChanged(Editable s) {}
         });
 
+        btnAddFirstBond.setOnClickListener(v -> startActivity(new Intent(getActivity(), AddBondActivity.class)));
+
         loadUserBonds();
-
-        MaterialButton btnAddFirstBond = findViewById(R.id.btnAddFirstBond);
-        btnAddFirstBond.setOnClickListener(v -> {
-            Intent intent = new Intent(MyBondsActivity.this, AddBondActivity.class);
-            startActivity(intent);
-        });
-
     }
 
     private void loadUserBonds() {
@@ -121,9 +117,7 @@ public class MyBondsActivity extends AppCompatActivity {
                             fullBondList.add(b);
                         }
 
-                        // show all by default
                         bondList.addAll(fullBondList);
-
                         emptyStateView.setVisibility(View.GONE);
                         recyclerView.setVisibility(View.VISIBLE);
                     } else {
@@ -134,7 +128,7 @@ public class MyBondsActivity extends AppCompatActivity {
                     tvBondCount.setText("Total Bonds: " + bondList.size());
                     adapter.notifyDataSetChanged();
                 })
-                .addOnFailureListener(e -> Toast.makeText(this, "Failed to load bonds.", Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> Toast.makeText(getActivity(), "Failed to load bonds.", Toast.LENGTH_SHORT).show());
     }
 
     private void filterBonds(String query) {
@@ -161,19 +155,14 @@ public class MyBondsActivity extends AppCompatActivity {
     }
 
     private void showSortDialog() {
-        String[] options = {"Newest First (trackedSince)", "Oldest First (trackedSince)",
-                "Denomination (Low → High)", "Denomination (High → Low)"};
+        String[] options = {"Newest First", "Oldest First", "Denomination Low→High", "Denomination High→Low"};
 
-        new MaterialAlertDialogBuilder(this)
+        new MaterialAlertDialogBuilder(getActivity())
                 .setTitle("Sort Bonds By")
                 .setItems(options, (dialog, which) -> {
                     switch (which) {
-                        case 0:
-                            // Assuming saved order is oldest->newest, reverse to newest first
-                            Collections.reverse(bondList);
-                            break;
+                        case 0: Collections.reverse(bondList); break;
                         case 1:
-                            // reset to original order (as loaded)
                             bondList.clear();
                             bondList.addAll(fullBondList);
                             break;
@@ -198,9 +187,8 @@ public class MyBondsActivity extends AppCompatActivity {
         }
     }
 
-    // ---------------- Filter bottom sheet ----------------
     private void showFilterBottomSheet() {
-        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        BottomSheetDialog dialog = new BottomSheetDialog(getActivity());
         View view = getLayoutInflater().inflate(R.layout.layout_filter_bonds, null);
         dialog.setContentView(view);
 
@@ -211,24 +199,23 @@ public class MyBondsActivity extends AppCompatActivity {
         MaterialButton btnReset = view.findViewById(R.id.btnResetFilters);
 
         String[] denoms = {"All", "Rs. 100", "Rs. 200", "Rs. 750", "Rs. 1500", "Rs. 7500", "Rs. 15000", "Rs. 25000", "Rs. 40000"};
-        filterDenomination.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, denoms));
+        filterDenomination.setAdapter(new ArrayAdapter<>(getActivity(), android.R.layout.simple_dropdown_item_1line, denoms));
         filterDenomination.setText("All", false);
 
         String[] cities = {"All", "Lahore", "Karachi", "Rawalpindi", "Peshawar", "Quetta", "Multan", "Faisalabad", "Hyderabad"};
-        filterCity.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, cities));
+        filterCity.setAdapter(new ArrayAdapter<>(getActivity(), android.R.layout.simple_dropdown_item_1line, cities));
         filterCity.setText("All", false);
 
         final long[] dateStart = {0};
         final long[] dateEnd = {0};
 
-        // Date range picker (MaterialDatePicker returns androidx.core.util.Pair)
         btnDateRange.setOnClickListener(v -> {
-            MaterialDatePicker<Pair<Long, Long>> datePicker =
+            MaterialDatePicker<androidx.core.util.Pair<Long, Long>> datePicker =
                     MaterialDatePicker.Builder.dateRangePicker()
                             .setTitleText("Select Purchase Date Range")
                             .build();
 
-            datePicker.show(getSupportFragmentManager(), "DATE_RANGE");
+            datePicker.show(getParentFragmentManager(), "DATE_RANGE");
 
             datePicker.addOnPositiveButtonClickListener(selection -> {
                 if (selection != null) {
@@ -239,7 +226,6 @@ public class MyBondsActivity extends AppCompatActivity {
             });
         });
 
-        // Reset filters
         btnReset.setOnClickListener(v -> {
             filterDenomination.setText("All", false);
             filterCity.setText("All", false);
@@ -254,7 +240,6 @@ public class MyBondsActivity extends AppCompatActivity {
             dialog.dismiss();
         });
 
-        // Apply filters
         btnApply.setOnClickListener(v -> {
             String selectedDenom = filterDenomination.getText().toString();
             String selectedCity = filterCity.getText().toString();
@@ -264,17 +249,14 @@ public class MyBondsActivity extends AppCompatActivity {
             for (Bond b : fullBondList) {
                 boolean match = true;
 
-                // Denomination filter
                 if (!"All".equals(selectedDenom) && (b.getDenomination() == null || !b.getDenomination().equals(selectedDenom))) {
                     match = false;
                 }
 
-                // City filter
                 if (!"All".equals(selectedCity) && (b.getDrawCity() == null || !b.getDrawCity().equalsIgnoreCase(selectedCity))) {
                     match = false;
                 }
 
-                // Date filter (if user selected a range)
                 if (dateStart[0] != 0 && b.getPurchaseDate() != null && !b.getPurchaseDate().isEmpty()) {
                     try {
                         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
@@ -282,9 +264,7 @@ public class MyBondsActivity extends AppCompatActivity {
                         if (bondDate < dateStart[0] || bondDate > dateEnd[0]) {
                             match = false;
                         }
-                    } catch (Exception ignored) {
-                        // If parsing fails, skip date filtering for that bond
-                    }
+                    } catch (Exception ignored) {}
                 }
 
                 if (match) bondList.add(b);

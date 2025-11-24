@@ -4,16 +4,18 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
@@ -35,9 +37,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class ProfileActivity extends AppCompatActivity {
+public class ProfileActivity extends Fragment {
 
-    private static final String TAG = "ProfileActivity";
+    private static final String TAG = "ProfileFragment";
     private static final String APP_ID = "prizebond-tracker-app-id";
     private static final int PICK_IMAGE = 1001;
 
@@ -58,11 +60,19 @@ public class ProfileActivity extends AppCompatActivity {
     private Uri imageUri; // selected image
     private TextView tvDisplayName, tvDisplayEmail;
 
+    public ProfileActivity() {}
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.activity_profile, container, false);
+    }
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_profile);
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
         // Initialize Firebase
         mAuth = FirebaseAuth.getInstance();
@@ -71,84 +81,58 @@ public class ProfileActivity extends AppCompatActivity {
         currentUser = mAuth.getCurrentUser();
 
         if (currentUser == null) {
-            Toast.makeText(this, "User not authenticated. Please login.", Toast.LENGTH_LONG).show();
-            startActivity(new Intent(this, LoginActivity.class));
-            finish();
+            Toast.makeText(getActivity(), "User not authenticated. Please login.", Toast.LENGTH_LONG).show();
+            startActivity(new Intent(getActivity(), LoginActivity.class));
             return;
         }
 
         userId = currentUser.getUid();
 
-        initViews();
-        setupToolbar();
+        initViews(view);
+        setupToolbar(view);
         loadUserData();
 
-        // Edit Profile toggle
         btnEditProfile.setOnClickListener(v -> toggleEditCard());
-
-        // Update profile button
         btnUpdateProfile.setOnClickListener(v -> updateProfile());
-
-        // Change photo
         btnChangePhoto.setOnClickListener(v -> openGallery());
-
-        // Logout
         btnLogout.setOnClickListener(v -> showLogoutConfirmation());
-
-        // Password actions
         btnChangePassword.setOnClickListener(v -> showChangePasswordDialog());
         btnForgotPassword.setOnClickListener(v -> sendPasswordResetEmail());
-
-        // Switch preferences
         switchNotifications.setOnCheckedChangeListener((b, checked) -> saveAppPreference("notifications_enabled", checked));
         switchDataVisibility.setOnCheckedChangeListener((b, checked) -> saveAppPreference("ai_data_sharing", checked));
     }
 
-    private void initViews() {
-        ivProfilePicture = findViewById(R.id.ivProfilePicture);
-        btnEditProfile = findViewById(R.id.btnEditProfile);
-        btnChangePhoto = findViewById(R.id.btnChangePhoto);
-        btnUpdateProfile = findViewById(R.id.btnUpdateProfile);
-        btnLogout = findViewById(R.id.btnLogout);
-        etFullName = findViewById(R.id.etFullName);
-        etEmail = findViewById(R.id.etEmail);
-        etCityRegion = findViewById(R.id.etCityRegion);
-        switchNotifications = findViewById(R.id.switchNotifications);
-        switchDataVisibility = findViewById(R.id.switchDataVisibility);
-        btnChangePassword = findViewById(R.id.btnChangePassword);
-        btnForgotPassword = findViewById(R.id.btnForgotPassword);
-        editProfileCard = findViewById(R.id.editProfileCard);
-        tvDisplayName = findViewById(R.id.tvDisplayName);
-        tvDisplayEmail = findViewById(R.id.tvDisplayEmail);
-
+    private void initViews(View view) {
+        ivProfilePicture = view.findViewById(R.id.ivProfilePicture);
+        btnEditProfile = view.findViewById(R.id.btnEditProfile);
+        btnChangePhoto = view.findViewById(R.id.btnChangePhoto);
+        btnUpdateProfile = view.findViewById(R.id.btnUpdateProfile);
+        btnLogout = view.findViewById(R.id.btnLogout);
+        etFullName = view.findViewById(R.id.etFullName);
+        etEmail = view.findViewById(R.id.etEmail);
+        etCityRegion = view.findViewById(R.id.etCityRegion);
+        switchNotifications = view.findViewById(R.id.switchNotifications);
+        switchDataVisibility = view.findViewById(R.id.switchDataVisibility);
+        btnChangePassword = view.findViewById(R.id.btnChangePassword);
+        btnForgotPassword = view.findViewById(R.id.btnForgotPassword);
+        editProfileCard = view.findViewById(R.id.editProfileCard);
+        tvDisplayName = view.findViewById(R.id.tvDisplayName);
+        tvDisplayEmail = view.findViewById(R.id.tvDisplayEmail);
     }
 
-    private void setupToolbar() {
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle("Profile Settings");
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if(item.getItemId() == android.R.id.home){
-            finish();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
+    private void setupToolbar(View view) {
+        Toolbar toolbar = view.findViewById(R.id.toolbar);
+        toolbar.setTitle("Profile Settings");
     }
 
     // ---------- Load User Data ----------
     private void loadUserData() {
         if (currentUser == null) return;
 
-        // Always show email from FirebaseAuth
         String email = currentUser.getEmail();
         tvDisplayEmail.setText(email);
         etEmail.setText(email);
 
-        // Firestore reference
         DocumentReference userDocRef = db.collection("artifacts")
                 .document(APP_ID)
                 .collection("users")
@@ -158,28 +142,22 @@ public class ProfileActivity extends AppCompatActivity {
 
         userDocRef.get().addOnSuccessListener(doc -> {
             if (doc.exists()) {
-
-                // Load username from Firestore
-                String name = doc.getString("name"); // <-- use your exact field name
+                String name = doc.getString("name");
                 if (name != null && !name.isEmpty()) {
                     tvDisplayName.setText(name);
                     etFullName.setText(name);
                 } else {
-                    // fallback
                     tvDisplayName.setText(email);
                     etFullName.setText("");
                 }
 
-                // Load city
                 etCityRegion.setText(doc.getString("city_region"));
 
-                // Load switches
                 switchNotifications.setChecked(doc.getBoolean("notifications_enabled") != null ? doc.getBoolean("notifications_enabled") : true);
                 switchDataVisibility.setChecked(doc.getBoolean("ai_data_sharing") != null ? doc.getBoolean("ai_data_sharing") : false);
             }
         }).addOnFailureListener(e -> Log.e(TAG, "Failed to load user data: " + e.getMessage()));
     }
-
 
     // ---------- Toggle Edit Card ----------
     private void toggleEditCard() {
@@ -199,14 +177,13 @@ public class ProfileActivity extends AppCompatActivity {
         String newCity = etCityRegion.getText().toString().trim();
 
         if (newName.isEmpty()) {
-            Toast.makeText(this, "Name cannot be empty", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), "Name cannot be empty", Toast.LENGTH_SHORT).show();
             return;
         }
 
         UserProfileChangeRequest.Builder builder = new UserProfileChangeRequest.Builder();
-        builder.setDisplayName(newName); // optional fallback
+        builder.setDisplayName(newName);
 
-        // Save name & city in Firestore
         DocumentReference userDocRef = db.collection("artifacts")
                 .document(APP_ID)
                 .collection("users")
@@ -215,55 +192,19 @@ public class ProfileActivity extends AppCompatActivity {
                 .document("info");
 
         Map<String, Object> updates = new HashMap<>();
-        updates.put("name", newName);       // store in Firestore
+        updates.put("name", newName);
         updates.put("city_region", newCity);
 
         userDocRef.set(updates, SetOptions.merge())
                 .addOnSuccessListener(aVoid -> {
                     currentUser.updateProfile(builder.build());
-                    Toast.makeText(this, "Profile updated successfully!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getActivity(), "Profile updated successfully!", Toast.LENGTH_SHORT).show();
                     toggleEditCard();
-                    tvDisplayName.setText(newName); // immediately update header
+                    tvDisplayName.setText(newName);
                 })
-                .addOnFailureListener(e -> Toast.makeText(this, "Failed to update profile: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                .addOnFailureListener(e -> Toast.makeText(getActivity(), "Failed to update profile: " + e.getMessage(), Toast.LENGTH_LONG).show());
     }
 
-
-    private void saveProfileWithoutImage(UserProfileChangeRequest.Builder builder, String city){
-        currentUser.updateProfile(builder.build()).addOnSuccessListener(aVoid -> {
-            saveCityToFirestore(city);
-            Toast.makeText(this,"Profile updated successfully!", Toast.LENGTH_SHORT).show();
-            toggleEditCard();
-        });
-    }
-
-    private void uploadImageAndSave(UserProfileChangeRequest.Builder builder, String city){
-        StorageReference ref = storage.getReference("profile_photos/" + userId + ".jpg");
-        ref.putFile(imageUri).addOnSuccessListener(task -> ref.getDownloadUrl().addOnSuccessListener(uri -> {
-            builder.setPhotoUri(uri);
-            currentUser.updateProfile(builder.build()).addOnSuccessListener(aVoid -> {
-                saveCityToFirestore(city);
-                Glide.with(this).load(uri).into(ivProfilePicture);
-                Toast.makeText(this,"Profile updated successfully!", Toast.LENGTH_SHORT).show();
-                toggleEditCard();
-            });
-        })).addOnFailureListener(e -> Toast.makeText(this,"Image upload failed",Toast.LENGTH_SHORT).show());
-    }
-
-    private void saveCityToFirestore(String city){
-        DocumentReference userDocRef = db.collection("artifacts")
-                .document(APP_ID)
-                .collection("users")
-                .document(userId)
-                .collection("profile")
-                .document("info");
-
-        Map<String,Object> data = new HashMap<>();
-        data.put("city_region", city);
-        userDocRef.set(data, SetOptions.merge());
-    }
-
-    // ---------- Switch Preferences ----------
     private void saveAppPreference(String field, boolean isChecked){
         if(currentUser == null) return;
         DocumentReference userDocRef = db.collection("artifacts")
@@ -280,7 +221,6 @@ public class ProfileActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Log.e(TAG,"Failed to update "+field+": "+e.getMessage()));
     }
 
-    // ---------- Open Gallery ----------
     private void openGallery(){
         Intent intent = new Intent(Intent.ACTION_PICK);
         intent.setType("image/*");
@@ -288,22 +228,21 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode,resultCode,data);
-        if(requestCode==PICK_IMAGE && resultCode==RESULT_OK && data!=null){
+        if(requestCode==PICK_IMAGE && resultCode==getActivity().RESULT_OK && data!=null){
             imageUri = data.getData();
             ivProfilePicture.setImageURI(imageUri);
         }
     }
 
-    // ---------- Logout ----------
     private void showLogoutConfirmation(){
-        new AlertDialog.Builder(this)
+        new AlertDialog.Builder(getActivity())
                 .setTitle("Logout")
                 .setMessage("Are you sure you want to log out?")
                 .setPositiveButton("Yes",(dialog, which)->{
                     mAuth.signOut();
-                    Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
+                    Intent intent = new Intent(getActivity(), LoginActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
                 })
@@ -311,14 +250,13 @@ public class ProfileActivity extends AppCompatActivity {
                 .show();
     }
 
-    // ---------- Change Password ----------
     private void showChangePasswordDialog(){
         View view = getLayoutInflater().inflate(R.layout.activity_dialog_change_password,null);
         TextInputEditText etCurrent = view.findViewById(R.id.etCurrentPassword);
         TextInputEditText etNew = view.findViewById(R.id.etNewPassword);
         TextInputEditText etConfirm = view.findViewById(R.id.etConfirmNewPassword);
 
-        new AlertDialog.Builder(this)
+        new AlertDialog.Builder(getActivity())
                 .setTitle("Change Password")
                 .setView(view)
                 .setPositiveButton("Save",(dialog,which)->{
@@ -327,12 +265,12 @@ public class ProfileActivity extends AppCompatActivity {
                     String confirm = etConfirm.getText().toString().trim();
 
                     if(current.isEmpty() || newPass.isEmpty() || confirm.isEmpty()){
-                        Toast.makeText(this,"All fields required",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(),"All fields required",Toast.LENGTH_SHORT).show();
                         return;
                     }
 
                     if(!newPass.equals(confirm)){
-                        Toast.makeText(this,"Passwords do not match",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(),"Passwords do not match",Toast.LENGTH_SHORT).show();
                         return;
                     }
 
@@ -351,28 +289,27 @@ public class ProfileActivity extends AppCompatActivity {
             if(task.isSuccessful()){
                 currentUser.updatePassword(newPassword).addOnCompleteListener(task1->{
                     if(task1.isSuccessful()){
-                        Toast.makeText(this,"Password changed successfully!",Toast.LENGTH_LONG).show();
+                        Toast.makeText(getActivity(),"Password changed successfully!",Toast.LENGTH_LONG).show();
                     } else {
-                        Toast.makeText(this,"Failed: "+task1.getException().getMessage(),Toast.LENGTH_LONG).show();
+                        Toast.makeText(getActivity(),"Failed: "+task1.getException().getMessage(),Toast.LENGTH_LONG).show();
                     }
                 });
             } else {
-                Toast.makeText(this,"Current password incorrect",Toast.LENGTH_LONG).show();
+                Toast.makeText(getActivity(),"Current password incorrect",Toast.LENGTH_LONG).show();
             }
         });
     }
 
-    // ---------- Forgot Password ----------
     private void sendPasswordResetEmail(){
         if(currentUser==null || currentUser.getEmail()==null) return;
 
         String email = currentUser.getEmail();
         mAuth.sendPasswordResetEmail(email).addOnSuccessListener(aVoid -> {
-            new AlertDialog.Builder(this)
+            new AlertDialog.Builder(getActivity())
                     .setTitle("Email Sent")
                     .setMessage("Password reset link has been sent to:\n"+email)
                     .setPositiveButton("OK",null)
                     .show();
-        }).addOnFailureListener(e-> Toast.makeText(this,"Failed: "+e.getMessage(),Toast.LENGTH_LONG).show());
+        }).addOnFailureListener(e-> Toast.makeText(getActivity(),"Failed: "+e.getMessage(),Toast.LENGTH_LONG).show());
     }
 }

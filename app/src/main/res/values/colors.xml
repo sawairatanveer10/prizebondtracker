@@ -5,6 +5,7 @@
     <color name="primary_light">#439D8A</color> <!-- Light Green variant for accents/highlights -->
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
+    <color name="navy_blue">#000080</color>
 
     <!-- 2. Secondary/Accent Colors -->
     <color name="ai_card_green">#00796B</color> <!-- A slightly brighter, yet still dark, teal-green for the AI card highlight -->

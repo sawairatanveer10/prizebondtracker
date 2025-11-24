@@ -1,142 +1,109 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
     android:background="@color/bg_light"
-    tools:context=".UpcomingDrawsActivity">
+    android:padding="0dp">
 
-    <!-- AppBar/Toolbar -->
-    <com.google.android.material.appbar.AppBarLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:elevation="4dp">
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
+        android:orientation="vertical">
+
+        <!-- AppBar -->
+        <com.google.android.material.appbar.AppBarLayout
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="@color/primary_green"
-            app:title="Upcoming Draw Schedule"
-            app:titleTextColor="@color/white"
-            app:navigationIcon="@drawable/ic_arrow_back"/>
-    </com.google.android.material.appbar.AppBarLayout>
+            android:layout_height="wrap_content"
+            android:theme="@style/ThemeOverlay.Material3.Dark.ActionBar">
 
-    <!-- Main Content Area -->
-    <androidx.core.widget.NestedScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="@color/primary_green"
+                app:title="Upcoming Draws"
+                app:titleTextColor="@color/white"
+                app:navigationIcon="@drawable/ic_arrow_back"/>
+        </com.google.android.material.appbar.AppBarLayout>
 
+        <!-- Filter Section -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="horizontal"
+            android:padding="12dp"
+            android:background="@color/white"
+            android:elevation="2dp"
+            android:gravity="center_vertical"
+            android:baselineAligned="false">
 
-            <!-- Filter Section -->
-            <LinearLayout
-                android:layout_width="match_parent"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/filter_denomination_layout"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="0dp"
+                android:layout_weight="1.5"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="12dp"
-                android:background="@color/white"
-                android:elevation="2dp"
-                android:gravity="center_vertical"
-                android:baselineAligned="false">
+                android:hint="Denomination"
+                android:layout_marginEnd="8dp">
 
-                <!-- Denomination Filter -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/filter_denomination_layout"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                    android:layout_width="0dp"
-                    android:layout_weight="1.5"
+                <AutoCompleteTextView
+                    android:id="@+id/spinner_denomination"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Denomination"
-                    android:layout_marginEnd="8dp">
+                    android:inputType="none"/>
+            </com.google.android.material.textfield.TextInputLayout>
 
-                    <AutoCompleteTextView
-                        android:id="@+id/spinner_denomination"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="none"
-                        tools:text="Rs. 750"/>
-                </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/filter_month_layout"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:hint="Month">
 
-                <!-- Month Filter -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/filter_month_layout"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
+                <AutoCompleteTextView
+                    android:id="@+id/spinner_month"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Month">
-
-                    <AutoCompleteTextView
-                        android:id="@+id/spinner_month"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="none"
-                        tools:text="November"/>
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- City Filter (Hidden on small screens, can be accessed via a menu or dedicated button)
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/filter_city_layout"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:hint="City"
-                    android:layout_marginStart="8dp">
-
-                    <AutoCompleteTextView
-                        android:id="@+id/spinner_city"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="none"/>
-                </com.google.android.material.textfield.TextInputLayout>
-                -->
-
-            </LinearLayout>
-
-            <!-- Draw List -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="All Officially Announced Draws"
-                android:textSize="16sp"
-                android:textColor="@color/text_primary"
-                android:textStyle="bold"
-                android:paddingStart="16dp"
-                android:paddingTop="16dp"
-                android:paddingBottom="8dp"/>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvDraws"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
-                android:paddingHorizontal="8dp"
-                android:paddingBottom="16dp"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                tools:listitem="@layout/activity_item_draw_card"/>
-
-            <!-- Empty State -->
-            <TextView
-                android:id="@+id/tvEmptyState"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="No upcoming draws match your current filter settings."
-                android:gravity="center"
-                android:padding="32dp"
-                android:visibility="gone"
-                android:textColor="@color/text_secondary"
-                android:textSize="16sp"
-                app:drawableTopCompat="@drawable/ic_calender"
-                app:drawableTint="@color/text_secondary"/>
-
+                    android:inputType="none"/>
+            </com.google.android.material.textfield.TextInputLayout>
         </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+        <!-- Upcoming Draws Label -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="All Officially Announced Draws"
+            android:textSize="16sp"
+            android:textColor="@color/text_primary"
+            android:textStyle="bold"
+            android:paddingStart="16dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="8dp"/>
+
+        <!-- RecyclerView -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvDraws"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false"
+            android:paddingHorizontal="8dp"
+            android:paddingBottom="16dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/activity_item_draw_card"/>
+
+        <!-- Empty State -->
+        <TextView
+            android:id="@+id/tvEmptyState"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="No upcoming draws match your current filter settings."
+            android:gravity="center"
+            android:padding="32dp"
+            android:visibility="gone"
+            android:textColor="@color/text_secondary"
+            android:textSize="16sp"/>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>
