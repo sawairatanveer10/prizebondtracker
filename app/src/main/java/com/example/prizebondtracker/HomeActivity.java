@@ -6,6 +6,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -58,6 +59,7 @@ public class HomeActivity extends AppCompatActivity {
         tvWelcome = findViewById(R.id.tvWelcome);
         tvTotalBonds = findViewById(R.id.tvTotalBonds);
 
+
         // Load Firestore data
         loadUserData();
         loadBondCount();
@@ -90,6 +92,12 @@ public class HomeActivity extends AppCompatActivity {
             }
             return false;
         });
+
+        btnNotifications.setOnClickListener(v -> {
+            Intent i = new Intent(HomeActivity.this, NotificationActivity.class);
+            startActivity(i);
+        });
+
     }
 
     /**
