@@ -25,6 +25,11 @@ public class NotificationActivity extends AppCompatActivity {
         list.add(new NotificationModel("📢 New Draw Result", "Prize bond 15000 draw result is available now!", "10 min ago"));
         list.add(new NotificationModel("⭐ Probability Updated", "Your winning probability chart has been refreshed.", "1 hour ago"));
         list.add(new NotificationModel("🔔 Upcoming Draw Reminder", "Next draw is on 31 January. Stay ready!", "Yesterday"));
+        list.add(new NotificationModel("⭐ Probability Updated", "Your winning probability chart has been refreshed.", "1 hour ago"));
+        list.add(new NotificationModel("🔔 Upcoming Draw Reminder", "Next draw is on 31 January. Stay ready!", "Yesterday"));
+        list.add(new NotificationModel("⭐ Probability Updated", "Your winning probability chart has been refreshed.", "1 hour ago"));
+        list.add(new NotificationModel("🔔 Upcoming Draw Reminder", "Next draw is on 31 January. Stay ready!", "Yesterday"));
+
 
         adapter = new NotificationAdapter(list);
         recyclerView.setAdapter(adapter);

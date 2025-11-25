@@ -73,6 +73,10 @@ public class SignupActivity extends AppCompatActivity {
             etPassword.setError("Password must be at least 6 characters");
             return;
         }
+        if (!isValidEmail(email)) {
+            etEmail.setError("Enter a valid email");
+            return;
+        }
 
         progressDialog.show();
         mAuth.createUserWithEmailAndPassword(email, password)
@@ -115,5 +119,11 @@ public class SignupActivity extends AppCompatActivity {
                         Toast.makeText(SignupActivity.this, err, Toast.LENGTH_LONG).show();
                     }
                 });
+
+
     }
+    private boolean isValidEmail(String email) {
+        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
+    }
+
 }

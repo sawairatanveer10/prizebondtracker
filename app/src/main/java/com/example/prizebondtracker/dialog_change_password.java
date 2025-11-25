@@ -58,15 +58,7 @@ public class dialog_change_password extends AppCompatActivity {
         etCurrentPassword = findViewById(R.id.etCurrentPassword);
         etNewPassword = findViewById(R.id.etNewPassword);
         etConfirmNewPassword = findViewById(R.id.etConfirmNewPassword);
-        btnSavePassword = findViewById(R.id.btnSavePassword);
 
-        // 4. Set up the save button click listener
-        btnSavePassword.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                attemptPasswordChange();
-            }
-        });
     }
 
     /**

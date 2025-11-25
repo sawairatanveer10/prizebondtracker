@@ -5,9 +5,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -17,48 +17,42 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 
-import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public class ProfileActivity extends Fragment {
 
     private static final String TAG = "ProfileFragment";
-    private static final String APP_ID = "prizebond-tracker-app-id";
+    private static final String APP_ID = "default-app-id";
     private static final int PICK_IMAGE = 1001;
 
-    // UI Elements
     private ShapeableImageView ivProfilePicture;
     private MaterialButton btnEditProfile, btnChangePhoto, btnUpdateProfile, btnLogout;
+    private Button btnChangePassword, btnForgotPassword;
     private TextInputEditText etFullName, etEmail, etCityRegion;
     private MaterialSwitch switchNotifications, switchDataVisibility;
-    private View btnChangePassword, btnForgotPassword, editProfileCard;
+    private View editProfileCard;
+    private TextView tvDisplayName, tvDisplayEmail;
 
-    // Firebase
     private FirebaseAuth mAuth;
     private FirebaseUser currentUser;
     private FirebaseFirestore db;
-    private FirebaseStorage storage;
     private String userId;
 
-    private Uri imageUri; // selected image
-    private TextView tvDisplayName, tvDisplayEmail;
+    private Uri imageUri;
 
     public ProfileActivity() {}
 
@@ -74,10 +68,8 @@ public class ProfileActivity extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Initialize Firebase
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-        storage = FirebaseStorage.getInstance();
         currentUser = mAuth.getCurrentUser();
 
         if (currentUser == null) {
@@ -96,10 +88,9 @@ public class ProfileActivity extends Fragment {
         btnUpdateProfile.setOnClickListener(v -> updateProfile());
         btnChangePhoto.setOnClickListener(v -> openGallery());
         btnLogout.setOnClickListener(v -> showLogoutConfirmation());
+
         btnChangePassword.setOnClickListener(v -> showChangePasswordDialog());
         btnForgotPassword.setOnClickListener(v -> sendPasswordResetEmail());
-        switchNotifications.setOnCheckedChangeListener((b, checked) -> saveAppPreference("notifications_enabled", checked));
-        switchDataVisibility.setOnCheckedChangeListener((b, checked) -> saveAppPreference("ai_data_sharing", checked));
     }
 
     private void initViews(View view) {
@@ -108,13 +99,13 @@ public class ProfileActivity extends Fragment {
         btnChangePhoto = view.findViewById(R.id.btnChangePhoto);
         btnUpdateProfile = view.findViewById(R.id.btnUpdateProfile);
         btnLogout = view.findViewById(R.id.btnLogout);
+        btnChangePassword = view.findViewById(R.id.btnChangePassword);
+        btnForgotPassword = view.findViewById(R.id.btnForgotPassword);
         etFullName = view.findViewById(R.id.etFullName);
         etEmail = view.findViewById(R.id.etEmail);
         etCityRegion = view.findViewById(R.id.etCityRegion);
         switchNotifications = view.findViewById(R.id.switchNotifications);
         switchDataVisibility = view.findViewById(R.id.switchDataVisibility);
-        btnChangePassword = view.findViewById(R.id.btnChangePassword);
-        btnForgotPassword = view.findViewById(R.id.btnForgotPassword);
         editProfileCard = view.findViewById(R.id.editProfileCard);
         tvDisplayName = view.findViewById(R.id.tvDisplayName);
         tvDisplayEmail = view.findViewById(R.id.tvDisplayEmail);
@@ -125,7 +116,6 @@ public class ProfileActivity extends Fragment {
         toolbar.setTitle("Profile Settings");
     }
 
-    // ---------- Load User Data ----------
     private void loadUserData() {
         if (currentUser == null) return;
 
@@ -136,21 +126,13 @@ public class ProfileActivity extends Fragment {
         DocumentReference userDocRef = db.collection("artifacts")
                 .document(APP_ID)
                 .collection("users")
-                .document(userId)
-                .collection("profile")
-                .document("info");
+                .document(userId);
 
         userDocRef.get().addOnSuccessListener(doc -> {
             if (doc.exists()) {
                 String name = doc.getString("name");
-                if (name != null && !name.isEmpty()) {
-                    tvDisplayName.setText(name);
-                    etFullName.setText(name);
-                } else {
-                    tvDisplayName.setText(email);
-                    etFullName.setText("");
-                }
-
+                tvDisplayName.setText(name != null ? name : email);
+                etFullName.setText(name != null ? name : "");
                 etCityRegion.setText(doc.getString("city_region"));
 
                 switchNotifications.setChecked(doc.getBoolean("notifications_enabled") != null ? doc.getBoolean("notifications_enabled") : true);
@@ -159,7 +141,6 @@ public class ProfileActivity extends Fragment {
         }).addOnFailureListener(e -> Log.e(TAG, "Failed to load user data: " + e.getMessage()));
     }
 
-    // ---------- Toggle Edit Card ----------
     private void toggleEditCard() {
         if(editProfileCard.getVisibility() == View.GONE){
             editProfileCard.setVisibility(View.VISIBLE);
@@ -171,7 +152,6 @@ public class ProfileActivity extends Fragment {
         }
     }
 
-    // ---------- Update Profile ----------
     private void updateProfile() {
         String newName = etFullName.getText().toString().trim();
         String newCity = etCityRegion.getText().toString().trim();
@@ -187,9 +167,7 @@ public class ProfileActivity extends Fragment {
         DocumentReference userDocRef = db.collection("artifacts")
                 .document(APP_ID)
                 .collection("users")
-                .document(userId)
-                .collection("profile")
-                .document("info");
+                .document(userId);
 
         Map<String, Object> updates = new HashMap<>();
         updates.put("name", newName);
@@ -205,51 +183,6 @@ public class ProfileActivity extends Fragment {
                 .addOnFailureListener(e -> Toast.makeText(getActivity(), "Failed to update profile: " + e.getMessage(), Toast.LENGTH_LONG).show());
     }
 
-    private void saveAppPreference(String field, boolean isChecked){
-        if(currentUser == null) return;
-        DocumentReference userDocRef = db.collection("artifacts")
-                .document(APP_ID)
-                .collection("users")
-                .document(userId)
-                .collection("profile")
-                .document("info");
-
-        Map<String,Object> updates = new HashMap<>();
-        updates.put(field, isChecked);
-        userDocRef.set(updates, SetOptions.merge())
-                .addOnSuccessListener(aVoid -> Log.d(TAG, field + " updated: " + isChecked))
-                .addOnFailureListener(e -> Log.e(TAG,"Failed to update "+field+": "+e.getMessage()));
-    }
-
-    private void openGallery(){
-        Intent intent = new Intent(Intent.ACTION_PICK);
-        intent.setType("image/*");
-        startActivityForResult(intent,PICK_IMAGE);
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode,resultCode,data);
-        if(requestCode==PICK_IMAGE && resultCode==getActivity().RESULT_OK && data!=null){
-            imageUri = data.getData();
-            ivProfilePicture.setImageURI(imageUri);
-        }
-    }
-
-    private void showLogoutConfirmation(){
-        new AlertDialog.Builder(getActivity())
-                .setTitle("Logout")
-                .setMessage("Are you sure you want to log out?")
-                .setPositiveButton("Yes",(dialog, which)->{
-                    mAuth.signOut();
-                    Intent intent = new Intent(getActivity(), LoginActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(intent);
-                })
-                .setNegativeButton("Cancel",null)
-                .show();
-    }
-
     private void showChangePasswordDialog(){
         View view = getLayoutInflater().inflate(R.layout.activity_dialog_change_password,null);
         TextInputEditText etCurrent = view.findViewById(R.id.etCurrentPassword);
@@ -257,7 +190,6 @@ public class ProfileActivity extends Fragment {
         TextInputEditText etConfirm = view.findViewById(R.id.etConfirmNewPassword);
 
         new AlertDialog.Builder(getActivity())
-                .setTitle("Change Password")
                 .setView(view)
                 .setPositiveButton("Save",(dialog,which)->{
                     String current = etCurrent.getText().toString().trim();
@@ -304,12 +236,41 @@ public class ProfileActivity extends Fragment {
         if(currentUser==null || currentUser.getEmail()==null) return;
 
         String email = currentUser.getEmail();
-        mAuth.sendPasswordResetEmail(email).addOnSuccessListener(aVoid -> {
+        mAuth.sendPasswordResetEmail(email).addOnSuccessListener(aVoid->{
             new AlertDialog.Builder(getActivity())
                     .setTitle("Email Sent")
                     .setMessage("Password reset link has been sent to:\n"+email)
                     .setPositiveButton("OK",null)
                     .show();
         }).addOnFailureListener(e-> Toast.makeText(getActivity(),"Failed: "+e.getMessage(),Toast.LENGTH_LONG).show());
+    }
+
+    private void openGallery(){
+        Intent intent = new Intent(Intent.ACTION_PICK);
+        intent.setType("image/*");
+        startActivityForResult(intent,PICK_IMAGE);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode,resultCode,data);
+        if(requestCode==PICK_IMAGE && resultCode==getActivity().RESULT_OK && data!=null){
+            imageUri = data.getData();
+            ivProfilePicture.setImageURI(imageUri);
+        }
+    }
+
+    private void showLogoutConfirmation(){
+        new AlertDialog.Builder(getActivity())
+                .setTitle("Logout")
+                .setMessage("Are you sure you want to log out?")
+                .setPositiveButton("Yes",(dialog, which)->{
+                    mAuth.signOut();
+                    Intent intent = new Intent(getActivity(), LoginActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                })
+                .setNegativeButton("Cancel",null)
+                .show();
     }
 }
