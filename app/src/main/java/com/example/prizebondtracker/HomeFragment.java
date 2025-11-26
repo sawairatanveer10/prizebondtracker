@@ -59,7 +59,7 @@ public class HomeFragment extends Fragment {
 
         // Set click listeners
         btnQuickAdd.setOnClickListener(v -> startActivity(new Intent(getActivity(), AddBondActivity.class)));
-        btnViewRecommendations.setOnClickListener(v -> startActivity(new Intent(getActivity(), AiRecommendActivity.class)));
+        btnViewRecommendations.setOnClickListener(v -> startActivity(new Intent(getActivity(), BudgetSuggestionsActivity.class)));
         btnNotifications.setOnClickListener(v -> startActivity(new Intent(getActivity(), NotificationActivity.class)));
 
         ivMenuIcon.setOnClickListener(v -> {

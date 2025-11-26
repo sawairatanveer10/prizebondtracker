@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@android:color/white"
+    android:elevation="4dp"
+    android:layout_marginBottom="12dp"
+    android:layout_marginStart="8dp"
+    android:layout_marginEnd="8dp">
+
+    <!-- Card header -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Suggested Purchase"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:paddingBottom="8dp"/>
+
+    <!-- Series -->
+    <TextView
+        android:id="@+id/seriesText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Series to Buy: A"
+        android:textSize="14sp"/>
+
+    <!-- Denomination -->
+    <TextView
+        android:id="@+id/denominationText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Bond Value: 100 PKR"
+        android:textSize="14sp"/>
+
+    <!-- Quantity -->
+    <TextView
+        android:id="@+id/numberText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Number of Bonds: 30"
+        android:textSize="14sp"/>
+
+    <!-- Cost -->
+    <TextView
+        android:id="@+id/costText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Total Cost: 3,000 PKR"
+        android:textSize="14sp"/>
+</LinearLayout>

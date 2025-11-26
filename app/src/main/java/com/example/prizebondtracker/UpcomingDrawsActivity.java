@@ -1,5 +1,6 @@
 package com.example.prizebondtracker;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +11,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -60,6 +62,16 @@ public class UpcomingDrawsActivity extends Fragment {
 
         setupFilters();
         loadDummyDraws();
+
+        Toolbar toolbar = view.findViewById(R.id.toolbar);
+        toolbar.setNavigationOnClickListener(v -> {
+            if (getActivity() != null) {
+                // Start HomeActivity
+                startActivity(new Intent(getActivity(), HomeActivity.class));
+                getActivity().finish(); // optional, close current fragment host activity
+            }
+        });
+
     }
 
     private void setupFilters() {

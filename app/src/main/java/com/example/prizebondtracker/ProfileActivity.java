@@ -91,6 +91,16 @@ public class ProfileActivity extends Fragment {
 
         btnChangePassword.setOnClickListener(v -> showChangePasswordDialog());
         btnForgotPassword.setOnClickListener(v -> sendPasswordResetEmail());
+
+        Toolbar toolbar = view.findViewById(R.id.toolbar);
+        toolbar.setNavigationOnClickListener(v -> {
+            if (getActivity() != null) {
+                // Start HomeActivity
+                startActivity(new Intent(getActivity(), HomeActivity.class));
+                getActivity().finish(); // optional, close current fragment host activity
+            }
+        });
+
     }
 
     private void initViews(View view) {
@@ -135,7 +145,7 @@ public class ProfileActivity extends Fragment {
                 etFullName.setText(name != null ? name : "");
                 etCityRegion.setText(doc.getString("city_region"));
 
-                switchNotifications.setChecked(doc.getBoolean("notifications_enabled") != null ? doc.getBoolean("notifications_enabled") : true);
+                switchNotifications.setChecked(doc.getBoolean("notifications_enabled") != null ? doc.getBoolean("notifications_enabled") : false);
                 switchDataVisibility.setChecked(doc.getBoolean("ai_data_sharing") != null ? doc.getBoolean("ai_data_sharing") : false);
             }
         }).addOnFailureListener(e -> Log.e(TAG, "Failed to load user data: " + e.getMessage()));

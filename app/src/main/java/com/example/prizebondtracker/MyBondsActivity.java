@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -57,6 +58,7 @@ public class MyBondsActivity extends Fragment {
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.activity_my_bonds, container, false);
+
     }
 
     @Override
@@ -90,6 +92,17 @@ public class MyBondsActivity extends Fragment {
         btnAddFirstBond.setOnClickListener(v -> startActivity(new Intent(getActivity(), AddBondActivity.class)));
 
         loadUserBonds();
+
+        Toolbar toolbar = view.findViewById(R.id.toolbar);
+        toolbar.setNavigationOnClickListener(v -> {
+            if (getActivity() != null) {
+                // Start HomeActivity
+                startActivity(new Intent(getActivity(), HomeActivity.class));
+                getActivity().finish(); // optional, close current fragment host activity
+            }
+        });
+
+
     }
 
     private void loadUserBonds() {

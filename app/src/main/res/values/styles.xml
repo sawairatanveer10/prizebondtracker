@@ -104,6 +104,8 @@
         <item name="android:textColor">@color/status_error</item>
         <item name="android:drawableTint">@color/status_error</item>
     </style>
+
+
 </resources>
 
 

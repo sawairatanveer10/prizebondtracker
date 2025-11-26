@@ -81,15 +81,20 @@ public class HomeActivity extends AppCompatActivity {
         });
         customMenuView.findViewById(R.id.menu_view_results).setOnClickListener(v -> {
             // Add activity/fragment if needed
+            startActivity(new android.content.Intent(HomeActivity.this, DrawResultsActivity.class));
             popupWindow.dismiss();
         });
         customMenuView.findViewById(R.id.menu_view_probability).setOnClickListener(v -> {
             // Add activity/fragment if needed
+            startActivity(new android.content.Intent(HomeActivity.this, WinningProbabilityActivity.class));
             popupWindow.dismiss();
         });
         customMenuView.findViewById(R.id.menu_purchasing_suggestions).setOnClickListener(v -> {
             // Add activity/fragment if needed
+
+            startActivity(new android.content.Intent(HomeActivity.this, BudgetSuggestionsActivity.class));
             popupWindow.dismiss();
+
         });
         customMenuView.findViewById(R.id.menu_logout).setOnClickListener(v -> {
             performLogout();
