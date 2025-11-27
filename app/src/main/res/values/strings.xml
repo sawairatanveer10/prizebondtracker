@@ -1,27 +1,25 @@
-
-
-
-
 <resources>
 
     <string name="app_name">Prize Bond Tracker</string>
-<string-array name="dummy_years">
-    <item>2025</item>
-    <item>2024</item>
-    <item>2023</item>
-</string-array>
 
-<string-array name="dummy_denominations">
-    <item>100</item>
-    <item>200</item>
-    <item>750</item>
-    <item>1500</item>
-</string-array>
+    <string-array name="dummy_years">
+        <item>2025</item>
+        <item>2024</item>
+        <item>2023</item>
+    </string-array>
 
-<string-array name="dummy_draw_dates">
-    <item>15-Jan-2025</item>
-    <item>15-Apr-2025</item>
-    <item>15-Jul-2025</item>
-    <item>15-Oct-2025</item>
-</string-array>
+    <string-array name="dummy_denominations">
+        <item>750</item>
+        <item>100</item>
+        <item>200</item>
+        <item>1500</item>
+    </string-array>
+
+    <string-array name="dummy_draw_dates">
+        <item>15-Jan-2025</item>
+        <item>15-Apr-2025</item>
+        <item>15-Jul-2025</item>
+        <item>15-Oct-2025</item>
+    </string-array>
+
 </resources>

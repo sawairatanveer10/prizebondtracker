@@ -1,51 +1,65 @@
 package com.example.prizebondtracker;
 
 import android.graphics.Color;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
 import java.util.List;
 
-public class ThirdPrizeAdapter extends RecyclerView.Adapter<ThirdPrizeAdapter.ViewHolder> {
+public class ThirdPrizeAdapter extends RecyclerView.Adapter<ThirdPrizeAdapter.VH> {
 
-    private List<String> prizeList;
-    private String dummyUserBond = "000126"; // highlighted as user bond
+    private List<String> data;
+    private String highlight = null;
 
-    public ThirdPrizeAdapter(List<String> prizeList) {
-        this.prizeList = prizeList;
-    }
+    public ThirdPrizeAdapter(List<String> data){ this.data = data; }
 
     @NonNull
     @Override
-    public ThirdPrizeAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        TextView tv = new TextView(parent.getContext());
-        tv.setTextSize(16f);
-        tv.setPadding(16, 8, 16, 8);
-        return new ViewHolder(tv);
+    public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_third_prize, parent, false);
+        return new VH(v);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ThirdPrizeAdapter.ViewHolder holder, int position) {
-        String number = prizeList.get(position);
-        ((TextView) holder.itemView).setText(number);
-
-        if(number.equals(dummyUserBond)){
-            holder.itemView.setBackgroundColor(Color.GREEN);
+    public void onBindViewHolder(@NonNull VH holder, int position) {
+        String num = data.get(position);
+        holder.tvNumber.setText(num);
+        if(num.equals(highlight)){
+            holder.itemView.setBackgroundColor(Color.parseColor("#C8E6C9")); // light green
         } else {
-            holder.itemView.setBackgroundColor(Color.TRANSPARENT);
+            holder.itemView.setBackgroundColor(Color.WHITE);
         }
     }
 
     @Override
-    public int getItemCount() {
-        return prizeList.size();
+    public int getItemCount() { return data.size(); }
+
+    public void updateList(List<String> newList){
+        this.data = newList;
+        this.highlight = null;
+        notifyDataSetChanged();
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        public ViewHolder(@NonNull View itemView) { super(itemView); }
+    // return true if found
+    public boolean highlightAndScrollTo(String numberToFind){
+        for(int i=0;i<data.size();i++){
+            if(data.get(i).equals(numberToFind)){
+                highlight = numberToFind;
+                notifyItemChanged(i);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static class VH extends RecyclerView.ViewHolder {
+        TextView tvNumber;
+        VH(@NonNull View v){
+            super(v);
+            tvNumber = v.findViewById(R.id.tvItemNumber);
+        }
     }
 }

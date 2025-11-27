@@ -1,17 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+  <!-- TOOLBAR -->
   <com.google.android.material.appbar.MaterialToolbar
       android:id="@+id/toolbar"
       android:layout_width="match_parent"
       android:layout_height="?attr/actionBarSize"
       android:background="?attr/colorPrimary"
-      android:titleTextColor="@android:color/white"
-      app:navigationIcon="@drawable/ic_arrow_back"/>
+      app:titleTextColor="@android:color/white"
+      app:navigationIcon="@drawable/ic_arrow_back"
+      />
 
+  <!-- PAGE CONTENT -->
   <ScrollView
       android:layout_width="match_parent"
       android:layout_height="match_parent"
@@ -23,59 +27,142 @@
         android:orientation="vertical"
         android:padding="16dp">
 
+      <!-- LABEL: YEAR -->
+      <TextView
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:text="Draw Year"
+          android:textSize="16sp"
+          android:textStyle="bold"
+          android:textColor="#2E7D32"
+          android:layout_marginTop="4dp"/>
+
       <Spinner
           android:id="@+id/spinnerYear"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
-          android:entries="@array/dummy_years" />
+          android:layout_marginTop="4dp"/>
+
+
+      <!-- LABEL: DENOMINATION -->
+      <TextView
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:text="Denomination"
+          android:textSize="16sp"
+          android:textStyle="bold"
+          android:textColor="#2E7D32"
+          android:layout_marginTop="16dp"/>
 
       <Spinner
           android:id="@+id/spinnerDenomination"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
-          android:entries="@array/dummy_denominations"
-          android:layout_marginTop="8dp" />
+          android:layout_marginTop="4dp"/>
+
+
+      <!-- LABEL: DRAW DATE -->
+      <TextView
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:text="Draw Date"
+          android:textSize="16sp"
+          android:textStyle="bold"
+          android:textColor="#2E7D32"
+          android:layout_marginTop="16dp"/>
 
       <Spinner
           android:id="@+id/spinnerDrawDate"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
-          android:entries="@array/dummy_draw_dates"
-          android:layout_marginTop="8dp" />
+          android:layout_marginTop="4dp"/>
 
+
+      <!-- LABEL: SEARCH NUMBERS -->
+      <TextView
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:text="Search Numbers"
+          android:textSize="16sp"
+          android:textStyle="bold"
+          android:textColor="#2E7D32"
+          android:layout_marginTop="16dp"/>
+
+      <!-- SEARCH BAR -->
+      <LinearLayout
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:orientation="horizontal"
+          android:layout_marginTop="4dp">
+
+        <EditText
+            android:id="@+id/etSearchNumber"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:hint="Enter bond number"
+            android:inputType="number"/>
+
+        <Button
+            android:id="@+id/btnSearch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Search"
+            android:layout_marginStart="8dp"/>
+      </LinearLayout>
+
+
+      <!-- PDF BUTTON -->
       <Button
           android:id="@+id/btnViewPDF"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
           android:text="View PDF"
-          android:layout_marginTop="12dp"
-          android:layout_gravity="end"/>
+          android:layout_marginTop="16dp"
+          android:layout_gravity="end" />
 
+
+      <!-- FIRST PRIZE -->
       <TextView
           android:id="@+id/tvFirstPrize"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
-          android:text="First Prize: 123456"
+          android:text="First Prize: —"
           android:textSize="18sp"
-          android:textColor="@android:color/holo_green_dark"
           android:textStyle="bold"
-          android:layout_marginTop="16dp"/>
+          android:textColor="#2E7D32"
+          android:layout_marginTop="24dp"/>
 
+      <!-- SECOND PRIZE -->
       <TextView
           android:id="@+id/tvSecondPrize"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
-          android:text="Second Prize: 234567, 345678"
+          android:text="Second Prize: —"
           android:textSize="16sp"
-          android:textColor="@android:color/holo_blue_dark"
           android:textStyle="bold"
-          android:layout_marginTop="12dp"/>
+          android:textColor="#1565C0"
+          android:layout_marginTop="8dp"/>
 
+      <!-- THIRD PRIZE HEADER -->
+      <TextView
+          android:id="@+id/tvThirdHeader"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:text="Third Prize Numbers"
+          android:textStyle="bold"
+          android:textSize="16sp"
+          android:layout_marginTop="16dp"/>
+
+      <!-- THIRD PRIZE LIST -->
       <androidx.recyclerview.widget.RecyclerView
           android:id="@+id/rvThirdPrize"
           android:layout_width="match_parent"
-          android:layout_height="400dp"
-          android:layout_marginTop="12dp"/>
+          android:layout_height="360dp"
+          android:layout_marginTop="8dp"/>
+
     </LinearLayout>
+
   </ScrollView>
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
