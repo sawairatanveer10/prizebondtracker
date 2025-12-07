@@ -85,19 +85,26 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
+
         progressDialog.setMessage("Logging in...");
         progressDialog.show();
 
-        mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
-            progressDialog.dismiss();
-            if (task.isSuccessful()) {
-                Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(LoginActivity.this, HomeActivity.class));
-                finish();
-            } else {
-                String err = task.getException() != null ? task.getException().getMessage() : "Authentication failed";
-                Toast.makeText(LoginActivity.this, err, Toast.LENGTH_LONG).show();
-            }
-        });
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(task -> {
+                    progressDialog.dismiss();
+
+                    if (task.isSuccessful()) {
+                        Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(LoginActivity.this, HomeActivity.class));
+                        finish();
+                    } else {
+                        String err = task.getException() != null ?
+                                task.getException().getMessage() :
+                                "Authentication failed";
+                        Toast.makeText(LoginActivity.this, err, Toast.LENGTH_LONG).show();
+                    }
+                });
     }
+
+
 }

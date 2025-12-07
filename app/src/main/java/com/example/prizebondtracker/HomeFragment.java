@@ -76,22 +76,35 @@ public class HomeFragment extends Fragment {
         }
 
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String appId = "default-app-id";
+
         FirebaseFirestore.getInstance()
                 .collection("artifacts")
-                .document("default-app-id")
+                .document(appId)
                 .collection("users")
                 .document(uid)
                 .get()
                 .addOnSuccessListener(doc -> {
-                    String name = "User";
-                    if (doc.exists()) {
-                        String fetchedName = doc.getString("fullName");
-                        if (fetchedName != null && !fetchedName.isEmpty()) name = fetchedName;
+
+                    if (!doc.exists()) {
+                        tvWelcome.setText("Welcome Back, User");
+                        return;
                     }
-                    tvWelcome.setText("Welcome Back, " + name);
+
+                    String name = doc.getString("name");
+
+                    if (name == null || name.trim().isEmpty()) {
+                        tvWelcome.setText("Welcome Back, User");
+                    } else {
+                        tvWelcome.setText("Welcome Back, " + name);
+                    }
+
                 })
-                .addOnFailureListener(e -> tvWelcome.setText("Welcome Back, User"));
+                .addOnFailureListener(e -> {
+                    tvWelcome.setText("Welcome Back, User");
+                });
     }
+
 
     private void loadBondCount() {
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
@@ -100,14 +113,20 @@ public class HomeFragment extends Fragment {
         }
 
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String appId = "default-app-id"; // use same appId as saving
+
         FirebaseFirestore.getInstance()
                 .collection("artifacts")
-                .document("default-app-id")
+                .document(appId)
                 .collection("users")
                 .document(uid)
                 .collection("bonds")
                 .get()
-                .addOnSuccessListener(query -> tvTotalBonds.setText(query.size() + " Bonds"))
+                .addOnSuccessListener(query -> {
+                    int count = query.size();
+                    tvTotalBonds.setText(count + " Bonds");
+                })
                 .addOnFailureListener(e -> tvTotalBonds.setText("0 Bonds"));
     }
+
 }

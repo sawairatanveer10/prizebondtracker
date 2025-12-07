@@ -65,16 +65,36 @@ public class SignupActivity extends AppCompatActivity {
             etName.setError("Enter full name");
             return;
         }
-        if (TextUtils.isEmpty(email)) {
+                if (TextUtils.isEmpty(email)) {
             etEmail.setError("Enter email");
             return;
         }
-        if (TextUtils.isEmpty(password) || password.length() < 6) {
+              if (TextUtils.isEmpty(password) || password.length() < 6) {
             etPassword.setError("Password must be at least 6 characters");
             return;
         }
         if (!isValidEmail(email)) {
             etEmail.setError("Enter a valid email");
+            return;
+        }
+
+        if (!password.matches(".*[A-Z].*")) {
+            etPassword.setError("Password must contain at least 1 uppercase letter (A-Z)");
+            return;
+        }
+
+        if (!password.matches(".*[a-z].*")) {
+            etPassword.setError("Password must contain at least 1 lowercase letter (a-z)");
+            return;
+        }
+
+        if (!password.matches(".*\\d.*")) {
+            etPassword.setError("Password must contain at least 1 number (0-9)");
+            return;
+        }
+
+        if (!password.matches(".*[@#$%^&+=!].*")) {
+            etPassword.setError("Password must contain at least 1 special character");
             return;
         }
 
@@ -102,7 +122,7 @@ public class SignupActivity extends AppCompatActivity {
                                     .addOnSuccessListener(aVoid -> {
                                         progressDialog.dismiss();
                                         Toast.makeText(SignupActivity.this, "Account created", Toast.LENGTH_SHORT).show();
-                                        startActivity(new Intent(SignupActivity.this, HomeActivity.class));
+                                        startActivity(new Intent(SignupActivity.this, LoginActivity.class));
                                         finish();
                                     })
                                     .addOnFailureListener(e -> {
@@ -123,7 +143,9 @@ public class SignupActivity extends AppCompatActivity {
 
     }
     private boolean isValidEmail(String email) {
-        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
+        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
+                && email.endsWith(".com");
     }
+
 
 }

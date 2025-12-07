@@ -72,7 +72,7 @@
             android:id="@+id/tvWelcome"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Welcome Back, Sawaira"
+            android:text="Welcome Back,"
             android:textSize="22sp"
             android:textStyle="bold"
             android:textColor="@color/white"

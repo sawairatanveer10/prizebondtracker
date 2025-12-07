@@ -86,7 +86,7 @@ public class ProfileActivity extends Fragment {
 
         btnEditProfile.setOnClickListener(v -> toggleEditCard());
         btnUpdateProfile.setOnClickListener(v -> updateProfile());
-        btnChangePhoto.setOnClickListener(v -> openGallery());
+      //  btnChangePhoto.setOnClickListener(v -> openGallery());
         btnLogout.setOnClickListener(v -> showLogoutConfirmation());
 
         btnChangePassword.setOnClickListener(v -> showChangePasswordDialog());
@@ -106,7 +106,7 @@ public class ProfileActivity extends Fragment {
     private void initViews(View view) {
         ivProfilePicture = view.findViewById(R.id.ivProfilePicture);
         btnEditProfile = view.findViewById(R.id.btnEditProfile);
-        btnChangePhoto = view.findViewById(R.id.btnChangePhoto);
+        // btnChangePhoto = view.findViewById(R.id.btnChangePhoto);
         btnUpdateProfile = view.findViewById(R.id.btnUpdateProfile);
         btnLogout = view.findViewById(R.id.btnLogout);
         btnChangePassword = view.findViewById(R.id.btnChangePassword);
@@ -255,7 +255,7 @@ public class ProfileActivity extends Fragment {
         }).addOnFailureListener(e-> Toast.makeText(getActivity(),"Failed: "+e.getMessage(),Toast.LENGTH_LONG).show());
     }
 
-    private void openGallery(){
+    /*private void openGallery(){
         Intent intent = new Intent(Intent.ACTION_PICK);
         intent.setType("image/*");
         startActivityForResult(intent,PICK_IMAGE);
@@ -268,7 +268,7 @@ public class ProfileActivity extends Fragment {
             imageUri = data.getData();
             ivProfilePicture.setImageURI(imageUri);
         }
-    }
+    }*/
 
     private void showLogoutConfirmation(){
         new AlertDialog.Builder(getActivity())
