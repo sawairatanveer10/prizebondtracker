@@ -216,6 +216,11 @@ public class ProfileActivity extends Fragment {
                         return;
                     }
 
+                    if(!isPasswordStrong(newPass)){
+                        Toast.makeText(getActivity(),"Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.",Toast.LENGTH_LONG).show();
+                        return;
+                    }
+
                     changePassword(current,newPass);
                 })
                 .setNegativeButton("Cancel",null)
@@ -242,17 +247,18 @@ public class ProfileActivity extends Fragment {
         });
     }
 
-    private void sendPasswordResetEmail(){
-        if(currentUser==null || currentUser.getEmail()==null) return;
+    private void sendPasswordResetEmail() {
+        if (getActivity() == null || currentUser == null || currentUser.getEmail() == null) return;
 
-        String email = currentUser.getEmail();
-        mAuth.sendPasswordResetEmail(email).addOnSuccessListener(aVoid->{
-            new AlertDialog.Builder(getActivity())
-                    .setTitle("Email Sent")
-                    .setMessage("Password reset link has been sent to:\n"+email)
-                    .setPositiveButton("OK",null)
-                    .show();
-        }).addOnFailureListener(e-> Toast.makeText(getActivity(),"Failed: "+e.getMessage(),Toast.LENGTH_LONG).show());
+        // Open ForgotPasswordActivity (professional)
+        startActivity(new Intent(getActivity(), ForgotPasswordActivity.class));
+    }
+
+
+    private boolean isPasswordStrong(String password) {
+        // Minimum 8 chars, at least 1 upper, 1 lower, 1 number, 1 special char
+        String passwordPattern = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!]).{8,}$";
+        return password.matches(passwordPattern);
     }
 
     /*private void openGallery(){

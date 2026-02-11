@@ -112,6 +112,8 @@ public class SignupActivity extends AppCompatActivity {
                             userMap.put("name", name);
                             userMap.put("email", email);
                             userMap.put("createdAt", System.currentTimeMillis());
+                            userMap.put("blocked", false); // <-- default blocked status
+
 
                             // 🔹 Save inside /artifacts/{appId}/users/{uid}
                             firestore.collection("artifacts")

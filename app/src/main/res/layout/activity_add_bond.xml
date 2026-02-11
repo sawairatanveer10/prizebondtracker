@@ -99,12 +99,12 @@
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Bond Number (e.g., A-123456)"
+                    android:hint="Bond Number (e.g., A-123456)*"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
                     app:boxCornerRadiusTopStart="8dp"
                     app:boxCornerRadiusTopEnd="8dp"
                     app:boxCornerRadiusBottomStart="8dp"
-                    app:boxCornerRadiusBottomEnd="8dp">>
+                    app:boxCornerRadiusBottomEnd="8dp">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etBondNumber"
                         android:layout_width="match_parent"
@@ -117,7 +117,7 @@
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Denomination"
+                    android:hint="Denomination*"
                     android:layout_marginTop="16dp"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu">
                     <AutoCompleteTextView
@@ -230,7 +230,7 @@
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Starting Bond Number (e.g., A-123400)"
+                    android:hint="Starting Bond Number (e.g., A-123400)*"
                     android:layout_marginTop="16dp"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
                     <com.google.android.material.textfield.TextInputEditText
@@ -245,7 +245,7 @@
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Ending Bond Number (e.g., A-123450)"
+                    android:hint="Ending Bond Number (e.g., A-123450)*"
                     android:layout_marginTop="16dp"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
                     <com.google.android.material.textfield.TextInputEditText
