@@ -51,9 +51,9 @@ public class dialog_change_password extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(v -> finish()); // Handle back navigation
 
         // 3. Initialize Views
-        tilCurrentPassword = findViewById(R.id.tilCurrentPassword);
-        tilNewPassword = findViewById(R.id.tilNewPassword);
-        tilConfirmNewPassword = findViewById(R.id.tilConfirmNewPassword);
+        tilCurrentPassword = findViewById(R.id.etCurrentPassword);
+        tilNewPassword = findViewById(R.id.etNewPassword);
+        tilConfirmNewPassword = findViewById(R.id.etConfirmNewPassword);
 
         etCurrentPassword = findViewById(R.id.etCurrentPassword);
         etNewPassword = findViewById(R.id.etNewPassword);

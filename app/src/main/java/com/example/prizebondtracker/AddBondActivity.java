@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.icu.util.Calendar;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -14,9 +15,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.FileProvider;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.button.MaterialButton;
@@ -31,6 +35,7 @@ import com.google.mlkit.vision.text.Text;
 import com.google.mlkit.vision.text.TextRecognition;
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,17 +47,19 @@ import java.util.regex.Pattern;
 
 public class AddBondActivity extends AppCompatActivity {
 
+    // OCR ke liye — existing fields ke neeche add karein
+    private Uri cameraImageUri;
     private static final int REQUEST_IMAGE_CAPTURE = 201;
     private static final int REQUEST_IMAGE_PICK = 202;
-
     private FirebaseFirestore db;
     private String userId;
     private final String appId = "default-app-id";
 
     private TabLayout tabLayout;
-    private TextInputEditText etBondNumber, etPurchaseDate, etBondSeries, etDrawCity;
+    private TextInputEditText etBondNumber, etPurchaseDate, etBondSeries;
     private TextInputEditText etStartBondNumber, etEndBondNumber;
-    private TextInputEditText etPurchaseDateBulk, etBondSeriesBulk, etDrawCityBulk;
+    private TextInputEditText etPurchaseDateBulk, etBondSeriesBulk;
+    private AutoCompleteTextView etDrawCity, etDrawCityBulk;
     private AutoCompleteTextView actDenomination, actDenominationBulk;
     private ImageView ivOCRPreview;
     private TextView tvExtractedData;
@@ -82,7 +89,12 @@ public class AddBondActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         toolbar.setNavigationOnClickListener(v -> finish());
 
+
         initializeViews();
+
+        setupCityAutoComplete(etDrawCity);
+        setupCityAutoComplete(etDrawCityBulk);
+
         setupDenominationDropdowns();
         setupTabSwitching();
         setupButtons();
@@ -174,7 +186,17 @@ public class AddBondActivity extends AppCompatActivity {
         if(bondNumber.isEmpty()){ showError(etBondNumber,"Bond number required"); return; }
         if(!isValidBondNumber(bondNumber)){ showError(etBondNumber,"Format A-123456"); return; }
         if(denomination.isEmpty()){ Toast.makeText(this,"Denomination required",Toast.LENGTH_SHORT).show(); return; }
+        if (etDrawCity.getAdapter() == null ||
+                ((ArrayAdapter) etDrawCity.getAdapter()).getPosition(etDrawCity.getText().toString()) == -1) {
+            etDrawCity.setError("Select valid Pakistani city");
+            return;
+        }
+        String series = etBondSeries.getText().toString().trim().toUpperCase();
 
+        if (!series.isEmpty() && !series.matches("^[A-Z]$")) {
+            showError(etBondSeries, "Only 1 alphabet allowed (A-Z)");
+            return;
+        }
         // Duplicate check for same user
         db.collection("artifacts").document(appId)
                 .collection("users").document(userId)
@@ -215,14 +237,39 @@ public class AddBondActivity extends AppCompatActivity {
             Toast.makeText(this, "All * fields required", Toast.LENGTH_LONG).show();
             return;
         }
-        if (!isValidBondNumber(start) || !isValidBondNumber(end)) {
-            Toast.makeText(this, "Invalid bond format", Toast.LENGTH_LONG).show();
+
+        // Validate bond format
+        if (!isValidBondNumber(start)) {
+            showError(etStartBondNumber, "Format must be A-123456");
+            return;
+        }
+        if (!isValidBondNumber(end)) {
+            showError(etEndBondNumber, "Format must be A-123456");
+            return;
+        }
+        if (etDrawCityBulk.getAdapter() == null ||
+                ((ArrayAdapter) etDrawCityBulk.getAdapter()).getPosition(etDrawCityBulk.getText().toString()) == -1) {
+            etDrawCityBulk.setError("Select valid Pakistani city");
+            return;
+        }
+
+        // Validate series matching
+        char startSeries = start.charAt(0);
+        char endSeries = end.charAt(0);
+        if (startSeries != endSeries) {
+            showError(etEndBondNumber, "Start and End bond series must match");
             return;
         }
 
         List<String> bonds = generateSequentialBonds(start, end);
         if (bonds.isEmpty()) {
             Toast.makeText(this, "Invalid range", Toast.LENGTH_LONG).show();
+            return;
+        }
+        String seriesBulk = etBondSeriesBulk.getText().toString().trim().toUpperCase();
+
+        if (!seriesBulk.isEmpty() && !seriesBulk.matches("^[A-Z]$")) {
+            showError(etBondSeriesBulk, "Only 1 alphabet allowed (A-Z)");
             return;
         }
 
@@ -256,7 +303,7 @@ public class AddBondActivity extends AppCompatActivity {
                         bond.put("number", bn);
                         bond.put("denomination", denomination);
                         bond.put("purchaseDate", etPurchaseDateBulk.getText().toString().trim());
-                        bond.put("series", etBondSeriesBulk.getText().toString().trim());
+                        bond.put("series", String.valueOf(startSeries));
                         bond.put("drawCity", etDrawCityBulk.getText().toString().trim());
                         bond.put("trackedSince", System.currentTimeMillis());
 
@@ -288,32 +335,62 @@ public class AddBondActivity extends AppCompatActivity {
     }
 
     // ========== OCR ENTRY ==========
-    private void pickImage(){
-        Intent intent = new Intent(Intent.ACTION_PICK);
-        intent.setType("image/*");
-        startActivityForResult(intent, REQUEST_IMAGE_PICK);
+    private void pickImage() {
+        String[] options = {"Camera", "Gallery"};
+        new AlertDialog.Builder(this)
+                .setTitle("Select Image Source")
+                .setItems(options, (dialog, which) -> {
+                    if (which == 0) {
+                        // Full resolution camera via FileProvider
+                        File photoFile = new File(
+                                getExternalFilesDir(Environment.DIRECTORY_PICTURES),
+                                "bond_ocr_" + System.currentTimeMillis() + ".jpg"
+                        );
+                        cameraImageUri = FileProvider.getUriForFile(
+                                this,
+                                getPackageName() + ".fileprovider",
+                                photoFile
+                        );
+                        Intent takePicture = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                        takePicture.putExtra(MediaStore.EXTRA_OUTPUT, cameraImageUri);
+                        startActivityForResult(takePicture, REQUEST_IMAGE_CAPTURE);
+                    } else {
+                        Intent pickPhoto = new Intent(
+                                Intent.ACTION_PICK,
+                                MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                        );
+                        pickPhoto.setType("image/*");
+                        startActivityForResult(pickPhoto, REQUEST_IMAGE_PICK);
+                    }
+                }).show();
     }
-
     @Override
-    protected void onActivityResult(int requestCode,int resultCode,Intent data){
-        super.onActivityResult(requestCode,resultCode,data);
-        if(resultCode!=RESULT_OK || data==null) return;
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode != RESULT_OK) return;
 
-        Bitmap bitmap = null;
-        if(requestCode==REQUEST_IMAGE_CAPTURE){
-            bitmap = (Bitmap) data.getExtras().get("data");
-        } else if(requestCode==REQUEST_IMAGE_PICK){
-            Uri uri = data.getData();
-            try { bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(),uri); }
-            catch (IOException e){ e.printStackTrace(); }
+        Uri imageUri = null;
+
+        if (requestCode == REQUEST_IMAGE_CAPTURE) {
+            // FileProvider se full resolution URI seedha milti hai
+            imageUri = cameraImageUri;
+        } else if (requestCode == REQUEST_IMAGE_PICK && data != null) {
+            imageUri = data.getData();
         }
 
-        if(bitmap!=null){
-            ivOCRPreview.setImageBitmap(bitmap);
-            processOCR(bitmap);
+        if (imageUri != null) {
+            try {
+                // Full resolution bitmap load karein
+                Bitmap bitmap = MediaStore.Images.Media
+                        .getBitmap(getContentResolver(), imageUri);
+                ivOCRPreview.setImageBitmap(bitmap);
+                tvExtractedData.setText("Scanning image...");
+                processOCR(bitmap);
+            } catch (IOException e) {
+                Toast.makeText(this, "Could not load image", Toast.LENGTH_SHORT).show();
+            }
         }
     }
-
     private void processOCR(Bitmap bitmap){
         InputImage image = InputImage.fromBitmap(bitmap,0);
         TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
@@ -322,70 +399,157 @@ public class AddBondActivity extends AppCompatActivity {
                 .addOnFailureListener(e-> Toast.makeText(this,"OCR failed",Toast.LENGTH_LONG).show());
     }
 
-    private void extractBondsFromText(Text visionText){
+    private void extractBondsFromText(Text visionText) {
         ocrBondsList.clear();
-        String text = visionText.getText();
+        String rawText = visionText.getText();
 
-        Pattern bondPattern = Pattern.compile("[A-Z]-?\\d{6}");
-        Matcher mBond = bondPattern.matcher(text);
+        // ---- Bond number extraction ----
+        // OCR aksar "A 123456", "A-123456", "A123456" return karta hai
+        // Yeh pattern teeno handle karta hai
+        Pattern bondPattern = Pattern.compile(
+                "\\b([A-Z])[-\\s]?(\\d{6})\\b"
+        );
+        Matcher mBond = bondPattern.matcher(rawText.toUpperCase());
         HashSet<String> bondNumbers = new HashSet<>();
-        while(mBond.find()){
-            String raw = mBond.group();
-            String prefix = raw.substring(0,1).toUpperCase();
-            String digits = raw.replaceAll("[^0-9]","");
-            bondNumbers.add(prefix+"-"+digits);
+        while (mBond.find()) {
+            // Standard format mein normalize karein: A-123456
+            String normalized = mBond.group(1) + "-" + mBond.group(2);
+            bondNumbers.add(normalized);
         }
 
-        String denomination = extractDenomination(text);
-        if(denomination.isEmpty()){
-            Toast.makeText(this,"Denomination not found in OCR",Toast.LENGTH_LONG).show();
+        // ---- Denomination extraction ----
+        String denomination = extractDenomination(rawText);
+
+        // ---- Series extraction ----
+        String series = extractSeries(rawText);
+
+        // ---- Results build karein ----
+        if (bondNumbers.isEmpty()) {
+            tvExtractedData.setText(
+                    "No bond numbers found.\n\nScanned text:\n" + rawText
+            );
             btnSaveOCR.setEnabled(false);
             return;
         }
 
-        String series = extractSeries(text);
-
-        for(String bn:bondNumbers){
-            Map<String,Object> bond = new HashMap<>();
-            bond.put("number",bn);
-            bond.put("denomination",denomination);
-            bond.put("series",series);
-            bond.put("drawCity",""); // optional
-            bond.put("purchaseDate",""); // optional
-            bond.put("trackedSince",System.currentTimeMillis());
+        if (denomination.isEmpty()) {
+            // User ko manually select karne do — professional behavior
+            showDenominationDialog(bondNumbers, series);
+            return;
+        }
+        for (String bn : bondNumbers) {
+            Map<String, Object> bond = new HashMap<>();
+            bond.put("number", bn);
+            bond.put("denomination", denomination);
+            bond.put("series", series);
+            bond.put("drawCity", "");
+            bond.put("purchaseDate", "");
+            bond.put("trackedSince", System.currentTimeMillis());
             ocrBondsList.add(bond);
         }
 
-        if(ocrBondsList.isEmpty()){
-            tvExtractedData.setText("No valid bonds found");
-            btnSaveOCR.setEnabled(false);
-        } else {
-            StringBuilder sb = new StringBuilder();
-            for(Map<String,Object> b:ocrBondsList){
-                sb.append("Bond: ").append(b.get("number")).append("\n")
-                        .append("Denomination: ").append(b.get("denomination")).append("\n")
-                        .append("Series: ").append(b.get("series")).append("\n\n");
+        StringBuilder sb = new StringBuilder();
+        sb.append("✓ Found ").append(ocrBondsList.size()).append(" bond(s):\n\n");
+        for (Map<String, Object> b : ocrBondsList) {
+            sb.append("Bond:         ").append(b.get("number")).append("\n");
+            sb.append("Denomination: ").append(b.get("denomination")).append("\n");
+            if (!b.get("series").toString().isEmpty()) {
+                sb.append("Series:       ").append(b.get("series")).append("\n");
             }
-            tvExtractedData.setText(sb.toString());
-            btnSaveOCR.setEnabled(true); // enable save after extraction
+            sb.append("\n");
         }
+        tvExtractedData.setText(sb.toString());
+        btnSaveOCR.setEnabled(true);
     }
 
+    private String extractDenomination(String text) {
+        // Step 1: normalize — newlines ko space se replace karo
+        // ML Kit aksar "Rs.\n25000" ya "Rs. \n 25,000" return karta hai
+        String cleaned = text
+                .replace("\n", " ")
+                .replace("\r", " ")
+                .replaceAll("\\s{2,}", " ")  // double spaces hatao
+                .toUpperCase();
 
-    private String extractDenomination(String text){
-        text = text.toUpperCase();
-        for(String d:DENOMINATIONS){
-            if(text.contains(d.replace("Rs. ","")) || text.contains(d.replace(".",""))){
-                return d;
+        // Step 2: "Rs." ke baad wala number directly dhundo
+        // Yeh pattern "Rs. 25000", "Rs.25000", "Rs 25000" sab handle karta hai
+        Pattern rsPattern = Pattern.compile(
+                "RS\\.?\\s*(\\d[\\d,]+)"
+        );
+        Matcher rsMatcher = rsPattern.matcher(cleaned);
+        if (rsMatcher.find()) {
+            String num = rsMatcher.group(1).replace(",", ""); // "25,000" → "25000"
+            String mapped = mapNumberToDenomination(num);
+            if (!mapped.isEmpty()) return mapped;
+        }
+
+        // Step 3: fallback — plain number dhundo (agar Rs. missing ho)
+        String[][] aliases = {
+                {"Rs. 100",   "100"},
+                {"Rs. 200",   "200"},
+                {"Rs. 750",   "750",   "7S0"},
+                {"Rs. 1500",  "1500",  "1500"},
+                {"Rs. 7500",  "7500"},
+                {"Rs. 15000", "15000", "15000"},
+                {"Rs. 25000", "25000", "25000"},
+                {"Rs. 40000", "40000", "40000"},
+        };
+
+        // Bada number pehle check karo (25000 se shuru) — "100" "25000" ke andar match na ho
+        for (int i = aliases.length - 1; i >= 0; i--) {
+            for (int j = 1; j < aliases[i].length; j++) {
+                Pattern p = Pattern.compile(
+                        "(?<![\\d])" + Pattern.quote(aliases[i][j]) + "(?![\\d])"
+                );
+                if (p.matcher(cleaned).find()) {
+                    return aliases[i][0];
+                }
             }
         }
         return "";
     }
 
-    private String extractSeries(String text){
-        Pattern p = Pattern.compile("(Series\\s*:?\\s*(\\d{1,3}))|(\\b\\d{1,3}\\b\\s*Series)",Pattern.CASE_INSENSITIVE);
-        Matcher m = p.matcher(text);
-        if(m.find()) return m.group().replaceAll("[^0-9]","");
+    private String mapNumberToDenomination(String num) {
+        switch (num.trim()) {
+            case "100":   return "Rs. 100";
+            case "200":   return "Rs. 200";
+            case "750":   return "Rs. 750";
+            case "1500":  return "Rs. 1500";
+            case "7500":  return "Rs. 7500";
+            case "15000": return "Rs. 15000";
+            case "25000": return "Rs. 25000";
+            case "40000": return "Rs. 40000";
+            default:      return "";
+        }
+    }
+    private String extractSeries(String text) {
+        // Prize bond series formats:
+        // "Series: 52", "52nd Series", "SERIES NO 52", "S-52"
+        Pattern[] patterns = {
+                Pattern.compile(
+                        "(?:series|ser)[\\s.:/-]*no[\\s.:/-]*(\\d{1,3})",
+                        Pattern.CASE_INSENSITIVE
+                ),
+                Pattern.compile(
+                        "(?:series|ser)[\\s.:/-]*(\\d{1,3})",
+                        Pattern.CASE_INSENSITIVE
+                ),
+                Pattern.compile(
+                        "(\\d{1,3})(?:st|nd|rd|th)?\\s*series",
+                        Pattern.CASE_INSENSITIVE
+                ),
+                Pattern.compile(
+                        "S[-\\s](\\d{1,3})\\b",
+                        Pattern.CASE_INSENSITIVE
+                ),
+        };
+
+        for (Pattern p : patterns) {
+            Matcher m = p.matcher(text);
+            if (m.find()) {
+                return m.group(1);
+            }
+        }
         return "";
     }
 
@@ -448,5 +612,125 @@ public class AddBondActivity extends AppCompatActivity {
                 });
     }
 
+    private void showDenominationDialog(HashSet<String> bondNumbers, String series) {
+        String[] denomOptions = {
+                "Rs. 100", "Rs. 200", "Rs. 750",
+                "Rs. 1500", "Rs. 7500", "Rs. 15000",
+                "Rs. 25000", "Rs. 40000"
+        };
 
+        // setMessage BILKUL MAT LIKHO setItems ke saath — Android bug
+        new AlertDialog.Builder(this)
+                .setTitle("Please select the correct value manually.")
+                // ← setMessage() NAHI
+                .setItems(denomOptions, (dialog, which) -> {
+                    String selectedDenom = denomOptions[which];
+                    ocrBondsList.clear();
+                    for (String bn : bondNumbers) {
+                        Map<String, Object> bond = new HashMap<>();
+                        bond.put("number", bn);
+                        bond.put("denomination", selectedDenom);
+                        bond.put("series", series);
+                        bond.put("drawCity", "");
+                        bond.put("purchaseDate", "");
+                        bond.put("trackedSince", System.currentTimeMillis());
+                        ocrBondsList.add(bond);
+                    }
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("✓ Found ").append(ocrBondsList.size()).append(" bond(s):\n\n");
+                    for (Map<String, Object> b : ocrBondsList) {
+                        sb.append("Bond:         ").append(b.get("number")).append("\n");
+                        sb.append("Denomination: ").append(b.get("denomination")).append("\n");
+                        if (!b.get("series").toString().isEmpty()) {
+                            sb.append("Series:       ").append(b.get("series")).append("\n");
+                        }
+                        sb.append("\n");
+                    }
+                    tvExtractedData.setText(sb.toString());
+                    btnSaveOCR.setEnabled(true);
+                })
+                .setCancelable(false)
+                .show();
+    }
+
+    private void setupCityAutoComplete(AutoCompleteTextView field) {
+        if (field == null) return;
+        field.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                if (s.length() < 3) return; // 3 letters ke baad API call
+
+                String url = "https://secure.geonames.org/searchJSON?country=PK&featureClass=P&orderby=population&maxRows=10&name_startsWith="
+                        + s.toString() + "&username=prizebondtracker";
+
+                com.android.volley.RequestQueue queue = com.android.volley.toolbox.Volley.newRequestQueue(AddBondActivity.this);
+
+                com.android.volley.toolbox.JsonObjectRequest request =
+                        new com.android.volley.toolbox.JsonObjectRequest(
+                                com.android.volley.Request.Method.GET,
+                                url,
+                                null,
+                                response -> {
+                                    try {
+                                        org.json.JSONArray arr = response.getJSONArray("geonames");
+
+                                        ArrayList<String> cities = new ArrayList<>();
+
+                                        for (int i = 0; i < arr.length(); i++) {
+                                            org.json.JSONObject obj = arr.getJSONObject(i);
+
+                                            String name = obj.getString("name");
+                                            int population = obj.getInt("population");
+
+                                            // 👉 filter (sirf real cities)
+                                            if (population > 50000) {
+                                                cities.add(name);
+                                            }
+                                        }
+
+                                        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                                                AddBondActivity.this,
+                                                android.R.layout.simple_dropdown_item_1line,
+                                                cities
+                                        );
+
+                                        field.setAdapter(adapter);
+                                        field.showDropDown();
+
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                },
+                                error -> {
+                                    if (error.networkResponse != null) {
+                                        int statusCode = error.networkResponse.statusCode;
+                                        Toast.makeText(AddBondActivity.this, "Error Code: " + statusCode, Toast.LENGTH_LONG).show();
+                                    } else {
+                                        Toast.makeText(AddBondActivity.this, "Network Error: " + error.toString(), Toast.LENGTH_LONG).show();
+                                    }
+
+                                    error.printStackTrace();
+                                }
+                        );
+
+                // 🔥 IMPORTANT: increase timeout
+                request.setRetryPolicy(new DefaultRetryPolicy(
+                        15000,
+                        DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                        DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+                ));
+
+                queue.add(request);
+
+               }
+
+            @Override
+            public void afterTextChanged(android.text.Editable s) {}
+        });
+    }
+    
 }

@@ -1,5 +1,6 @@
 package com.example.prizebondtracker;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
@@ -11,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -20,6 +22,9 @@ public class HomeActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
+        new BondNotificationManager(this);
+
 
         bottomNav = findViewById(R.id.bottomNav);
 
@@ -105,7 +110,13 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void performLogout() {
-        com.google.firebase.auth.FirebaseAuth.getInstance().signOut();
+        FirebaseAuth.getInstance().signOut(); // Sign out the user
         Toast.makeText(this, "Logged out successfully.", Toast.LENGTH_SHORT).show();
+
+        // Redirect to LoginActivity
+        Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish(); // Finish HomeActivity so user cannot go back
     }
 }

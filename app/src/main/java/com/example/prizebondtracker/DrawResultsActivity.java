@@ -3,247 +3,242 @@ package com.example.prizebondtracker;
 import android.content.Context;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Spinner;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.*;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 public class DrawResultsActivity extends AppCompatActivity {
 
-    private Spinner spinnerYear, spinnerDenomination, spinnerDrawDate;
+    private Spinner spinnerDenomination, spinnerYear, spinnerDrawDate;
     private EditText etSearchNumber;
-    private Button btnSearch, btnViewPDF;
+    private Button btnSearch;
     private TextView tvFirstPrize, tvSecondPrize;
     private RecyclerView rvThirdPrize;
     private ThirdPrizeAdapter adapter;
-
-    private final HashMap<String, HashMap<String, HashMap<String, DrawData>>> dummyDB = new HashMap<>();
-    private final Map<String, List<String>> yearDraws = new HashMap<>();
+    private FirebaseFirestore db;
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_draw_results);
 
-        // Toolbar
-        MaterialToolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle("View Draw Results");
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setHomeButtonEnabled(true);
-        }
-        toolbar.setNavigationOnClickListener(v -> onBackPressed());
-
-        // Views
-        spinnerYear = findViewById(R.id.spinnerYear);
+        // Initialize views
         spinnerDenomination = findViewById(R.id.spinnerDenomination);
+        spinnerYear = findViewById(R.id.spinnerYear);
         spinnerDrawDate = findViewById(R.id.spinnerDrawDate);
         etSearchNumber = findViewById(R.id.etSearchNumber);
         btnSearch = findViewById(R.id.btnSearch);
-        btnViewPDF = findViewById(R.id.btnViewPDF);
         tvFirstPrize = findViewById(R.id.tvFirstPrize);
         tvSecondPrize = findViewById(R.id.tvSecondPrize);
         rvThirdPrize = findViewById(R.id.rvThirdPrize);
 
-        setupYearDraws();
-        setupDummyData();
-        setupSpinners();
-        setupRecycler();
+        // Set up the toolbar title
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);  // Set this toolbar as the ActionBar
+        getSupportActionBar().setTitle("View Draw Results");  // Set the title
 
-        spinnerYear.setOnItemSelectedListener(new SimpleItemSelectedListener(this::refreshDrawDates));
-        spinnerDenomination.setOnItemSelectedListener(new SimpleItemSelectedListener(this::refreshDrawDates));
-        spinnerDrawDate.setOnItemSelectedListener(new SimpleItemSelectedListener(this::refreshPrizes));
+        // Add this for back button
+        toolbar.setNavigationOnClickListener(v -> finish());
 
-        btnViewPDF.setOnClickListener(v -> {
-            String year = spinnerYear.getSelectedItem().toString();
-            String denom = spinnerDenomination.getSelectedItem().toString();
-            String draw = spinnerDrawDate.getSelectedItem() != null ? spinnerDrawDate.getSelectedItem().toString() : "";
-            Toast.makeText(this, "Open PDF (dummy) for: " + year + " - " + denom + " - " + draw, Toast.LENGTH_SHORT).show();
-        });
+        // Firebase Firestore instance
+        db = FirebaseFirestore.getInstance();
 
-        btnSearch.setOnClickListener(v -> {
-            String q = etSearchNumber.getText().toString().trim();
-            hideKeyboard();
-            if (TextUtils.isEmpty(q)) {
-                Toast.makeText(this, "Enter a number to search", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            String year = spinnerYear.getSelectedItem().toString();
-            String denom = spinnerDenomination.getSelectedItem().toString();
-            String draw = spinnerDrawDate.getSelectedItem() != null ? spinnerDrawDate.getSelectedItem().toString() : "";
-
-            DrawData sel = null;
-            if (dummyDB.containsKey(year) && dummyDB.get(year).containsKey(denom)) {
-                sel = dummyDB.get(year).get(denom).get(draw);
-            }
-
-            if (sel == null) {
-                Toast.makeText(this, "No draw data available", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            boolean found = false;
-
-            // First prize
-            if (q.equals(sel.firstPrize)) found = true;
-
-            // Second prize
-            if (!found && sel.secondPrizes.contains(q)) found = true;
-
-            // Third prize
-            if (!found && sel.thirdPrizes.contains(q)) {
-                found = true;
-                adapter.highlightAndScrollTo(q); // Highlight in RecyclerView
-            }
-
-            if (found) {
-                Toast.makeText(this, "Number found in this draw!", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "Number not found in this draw", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        // Initial populate
-        refreshDrawDates();
-    }
-
-    private void setupYearDraws() {
-        yearDraws.put("2025", Arrays.asList("15-Jan-2025","15-Apr-2025","15-Jul-2025","15-Oct-2025"));
-        yearDraws.put("2024", Arrays.asList("15-Jan-2024","15-Apr-2024","15-Jul-2024","15-Oct-2024"));
-        yearDraws.put("2023", Arrays.asList("15-Jan-2023","15-Apr-2023","15-Jul-2023","15-Oct-2023"));
-    }
-
-    private void setupDummyData() {
-        String[] years = {"2025","2024","2023"};
-        String[] denoms = {"100","200","750","1500","25000","40000"};
-        Random rnd = new Random();
-
-        for (String year : years) {
-            for (String denom : denoms) {
-                List<String> draws = yearDraws.get(year);
-                for (String draw : draws) {
-                    // First prize: 1 bond
-                    String firstPrize = String.format("%06d", rnd.nextInt(900000) + 100000);
-
-                    // Second prize: 3 bonds
-                    List<String> secondPrizes = new ArrayList<>();
-                    while (secondPrizes.size() < 3) {
-                        String num = String.format("%06d", rnd.nextInt(900000) + 100000);
-                        if (!num.equals(firstPrize)) secondPrizes.add(num); // avoid duplicates
-                    }
-
-                    // Third prize: 9–10 bonds
-                    List<String> thirdPrizes = new ArrayList<>();
-                    int thirdCount = rnd.nextBoolean() ? 9 : 10;
-                    while (thirdPrizes.size() < thirdCount) {
-                        String num = String.format("%06d", rnd.nextInt(900000) + 100000);
-                        if (!num.equals(firstPrize) && !secondPrizes.contains(num) && !thirdPrizes.contains(num)) {
-                            thirdPrizes.add(num);
-                        }
-                    }
-
-                    DrawData d = new DrawData(firstPrize, secondPrizes, thirdPrizes);
-                    putDummy(year, denom, draw, d);
-                }
-            }
-        }
-    }
-
-    private void putDummy(String year, String denom, String date, DrawData data){
-        dummyDB.putIfAbsent(year, new HashMap<>());
-        HashMap<String, HashMap<String, DrawData>> byYear = dummyDB.get(year);
-        byYear.putIfAbsent(denom, new HashMap<>());
-        HashMap<String, DrawData> byDenom = byYear.get(denom);
-        byDenom.put(date, data);
-    }
-
-    private void setupSpinners(){
-        // Year Spinner
-        List<String> years = new ArrayList<>(yearDraws.keySet());
-        ArrayAdapter<String> yearAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, years);
-        yearAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerYear.setAdapter(yearAdapter);
-
-        // Denominations spinner
-        List<String> denoms = Arrays.asList("100","200","750","1500","25000","40000");
-        ArrayAdapter<String> denomAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, denoms);
-        denomAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerDenomination.setAdapter(denomAdapter);
-    }
-
-    private void refreshDrawDates(){
-        String year = spinnerYear.getSelectedItem().toString();
-        String denom = spinnerDenomination.getSelectedItem().toString();
-        List<String> dates = new ArrayList<>();
-        if (dummyDB.containsKey(year) && dummyDB.get(year).containsKey(denom)) {
-            dates.addAll(dummyDB.get(year).get(denom).keySet());
-        }
-        ArrayAdapter<String> dateAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, dates);
-        dateAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerDrawDate.setAdapter(dateAdapter);
-        refreshPrizes();
-    }
-
-    private void refreshPrizes(){
-        String year = spinnerYear.getSelectedItem().toString();
-        String denom = spinnerDenomination.getSelectedItem().toString();
-        String draw = spinnerDrawDate.getSelectedItem() != null ? spinnerDrawDate.getSelectedItem().toString() : "";
-
-        DrawData sel = null;
-        if (dummyDB.containsKey(year) && dummyDB.get(year).containsKey(denom)) {
-            sel = dummyDB.get(year).get(denom).get(draw);
-        }
-
-        if (sel == null) {
-            tvFirstPrize.setText("First Prize: —");
-            tvSecondPrize.setText("Second Prize: —");
-            adapter.updateList(new ArrayList<>());
-            return;
-        }
-
-        tvFirstPrize.setText("First Prize: " + sel.firstPrize);
-        tvSecondPrize.setText("Second Prize: " + TextUtils.join(", ", sel.secondPrizes));
-        adapter.updateList(new ArrayList<>(sel.thirdPrizes));
-    }
-
-    private void setupRecycler(){
         rvThirdPrize.setLayoutManager(new LinearLayoutManager(this));
         adapter = new ThirdPrizeAdapter(new ArrayList<>());
         rvThirdPrize.setAdapter(adapter);
+
+        loadCategories();  // Load categories (denominations)
+        setupListeners();  // Set up listeners for the spinners and search button
     }
 
-    private void hideKeyboard(){
-        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-        if(getCurrentFocus()!=null && imm!=null) imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+    // Load fixed categories (denominations) into spinner
+    private void loadCategories() {
+        // Define fixed categories
+        List<String> categories = Arrays.asList("100", "200", "750", "1500");
+
+        // Fill spinner with fixed categories
+        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, categories);
+        categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerDenomination.setAdapter(categoryAdapter);
+
+        // Automatically load years for the first category
+        loadYears(categories.get(0));
     }
 
-    private static class DrawData {
-        String firstPrize;
-        List<String> secondPrizes;
-        List<String> thirdPrizes;
-        DrawData(String f, List<String> s, List<String> t){
-            this.firstPrize = f;
-            this.secondPrizes = s;
-            this.thirdPrizes = t;
-        }
+    // Load years for the selected category (denomination)
+    private void loadYears(String category) {
+        db.collection("draw_results")
+                .whereEqualTo("category", category)  // Filter documents by selected category
+                .get()  // Get the documents for the selected category
+                .addOnSuccessListener(snapshot -> {
+                    HashSet<String> years = new HashSet<>();
+                    // Log the snapshot to check if documents are being returned
+                    Log.d("DrawResults", "Documents fetched: " + snapshot.size());
+
+                    // Loop through all documents and extract the year from the document ID
+                    for (DocumentSnapshot doc : snapshot.getDocuments()) {
+                        String docId = doc.getId();  // Document ID, e.g., "100_2019_15-03-12"
+                        Log.d("DrawResults", "Document ID: " + docId);  // Log the document ID
+
+                        String[] parts = docId.split("_");  // Split the document ID by underscores
+                        Log.d("DrawResults", "Parts: " + Arrays.toString(parts));  // Log the split parts
+
+                        if (parts.length > 1) {
+                            String year = parts[1];  // The year is the second part of the split document ID
+                            years.add(year);  // Add the extracted year to the HashSet
+                            Log.d("DrawResults", "Extracted Year: " + year);  // Log the extracted year
+                        }
+                    }
+
+                    // Log the extracted years
+                    Log.d("DrawResults", "Years extracted: " + years);
+
+                    // Check if years were found
+                    if (years.isEmpty()) {
+                        Log.e("DrawResults", "No years found for category: " + category);
+                    }
+
+                    // Fill spinner with the extracted years
+                    ArrayAdapter<String> yearAdapter = new ArrayAdapter<>(this,
+                            android.R.layout.simple_spinner_item, new ArrayList<>(years));
+                    yearAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    spinnerYear.setAdapter(yearAdapter);
+
+                    // Automatically load draw dates for the first year (if available)
+                    if (!years.isEmpty()) {
+                        loadDrawDates(category, years.iterator().next());
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("DrawResults", "Error fetching years: " + e.getMessage());  // Log the error message
+                    Toast.makeText(DrawResultsActivity.this, "Error fetching years.", Toast.LENGTH_SHORT).show();
+                });
+    }
+    // Load draw dates for the selected year and category
+    private void loadDrawDates(String category, String year) {
+        db.collection("draw_results")
+                .whereEqualTo("category", category)
+                .whereEqualTo("year", Integer.parseInt(year))  // Filter by category and year
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    HashSet<String> dates = new HashSet<>();
+                    for (DocumentSnapshot doc : snapshot.getDocuments()) {
+                        String[] parts = doc.getId().split("_");
+                        if (parts.length > 2) {
+                            dates.add(parts[2]);  // Extract date from document ID
+                        }
+                    }
+
+                    // Fill spinner with draw dates
+                    ArrayAdapter<String> dateAdapter = new ArrayAdapter<>(this,
+                            android.R.layout.simple_spinner_item, new ArrayList<>(dates));
+                    dateAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    spinnerDrawDate.setAdapter(dateAdapter);
+
+                    if (!dates.isEmpty()) {
+                        loadDrawResults(category, year, dates.iterator().next());  // Automatically load results for the first date
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(DrawResultsActivity.this, "Error fetching draw dates.", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    // Load draw results (first, second, third prizes) for the selected category, year, and date
+    private void loadDrawResults(String category, String year, String date) {
+        String docId = category + "_" + year + "_" + date;
+
+        db.collection("draw_results")
+                .document(docId)  // Fetch the specific draw result document
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists() && doc.contains("numbers")) {
+                        List<String> numbers = (List<String>) doc.get("numbers");
+
+                        // Display the results (first, second, third prizes)
+                        tvFirstPrize.setText("First Prize: " + numbers.get(0));
+                        if (numbers.size() >= 4) {
+                            tvSecondPrize.setText("Second Prize: " + String.join(", ", numbers.subList(1, 4)));
+                        }
+                        if (numbers.size() > 4) {
+                            adapter.updateList(numbers.subList(4, numbers.size()));
+                        } else {
+                            adapter.updateList(new ArrayList<>());
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(DrawResultsActivity.this, "Error fetching results.", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    // Set up listeners for the spinners and search button
+    private void setupListeners() {
+        spinnerDenomination.setOnItemSelectedListener(
+                new SimpleItemSelectedListener(() -> {
+                    if (spinnerDenomination.getSelectedItem() != null) {
+                        String category = spinnerDenomination.getSelectedItem().toString();
+                        loadYears(category);
+                    }
+                })
+        );
+
+        spinnerYear.setOnItemSelectedListener(
+                new SimpleItemSelectedListener(() -> {
+                    if (spinnerDenomination.getSelectedItem() != null &&
+                            spinnerYear.getSelectedItem() != null) {
+                        String category = spinnerDenomination.getSelectedItem().toString();
+                        String year = spinnerYear.getSelectedItem().toString();
+                        loadDrawDates(category, year);
+                    }
+                })
+        );
+
+        spinnerDrawDate.setOnItemSelectedListener(
+                new SimpleItemSelectedListener(() -> {
+                    if (spinnerDenomination.getSelectedItem() != null &&
+                            spinnerYear.getSelectedItem() != null &&
+                            spinnerDrawDate.getSelectedItem() != null) {
+                        String category = spinnerDenomination.getSelectedItem().toString();
+                        String year = spinnerYear.getSelectedItem().toString();
+                        String date = spinnerDrawDate.getSelectedItem().toString();
+                        loadDrawResults(category, year, date);
+                    }
+                })
+        );
+
+        btnSearch.setOnClickListener(v -> searchNumber());
+    }
+
+    // Search the entered bond number in the displayed third prizes
+    private void searchNumber() {
+        String query = etSearchNumber.getText().toString().trim();
+        if (TextUtils.isEmpty(query)) return;
+
+        boolean found = adapter.highlightAndScrollTo(query);
+        Toast.makeText(this,
+                found ? "Number found in this draw!" : "Number not found",
+                Toast.LENGTH_SHORT).show();
+
+        hideKeyboard();
+    }
+
+    // Hide the keyboard after search
+    private void hideKeyboard() {
+        InputMethodManager imm =
+                (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (getCurrentFocus() != null && imm != null)
+            imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
     }
 }

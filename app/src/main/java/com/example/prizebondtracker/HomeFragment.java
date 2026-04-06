@@ -1,6 +1,7 @@
 package com.example.prizebondtracker;
 
 import android.content.Intent;
+import android.icu.util.Calendar;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
@@ -15,6 +16,12 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class HomeFragment extends Fragment {
 
@@ -56,6 +63,7 @@ public class HomeFragment extends Fragment {
         // Load dynamic data
         loadUserData();
         loadBondCount();
+        loadNextDrawDate();
 
         // Set click listeners
         btnQuickAdd.setOnClickListener(v -> startActivity(new Intent(getActivity(), AddBondActivity.class)));
@@ -127,6 +135,50 @@ public class HomeFragment extends Fragment {
                     tvTotalBonds.setText(count + " Bonds");
                 })
                 .addOnFailureListener(e -> tvTotalBonds.setText("0 Bonds"));
+    }
+
+    private void loadNextDrawDate() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        db.collection("all_draws")
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    Date nearestDate = null;
+                    SimpleDateFormat dbFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+                    SimpleDateFormat displayFormat = new SimpleDateFormat("dd MMM, yyyy", Locale.getDefault());
+
+                    // Today's date with time cleared
+                    Calendar todayCal = Calendar.getInstance();
+                    todayCal.set(Calendar.HOUR_OF_DAY, 0);
+                    todayCal.set(Calendar.MINUTE, 0);
+                    todayCal.set(Calendar.SECOND, 0);
+                    todayCal.set(Calendar.MILLISECOND, 0);
+                    Date today = todayCal.getTime();
+
+                    for (QueryDocumentSnapshot doc : querySnapshot) {
+                        String dateStr = doc.getString("date");
+                        if (dateStr != null) {
+                            try {
+                                Date drawDate = dbFormat.parse(dateStr);
+                                if (drawDate != null && drawDate.after(today)) {
+                                    if (nearestDate == null || drawDate.before(nearestDate)) {
+                                        nearestDate = drawDate;
+                                    }
+                                }
+                            } catch (ParseException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+
+                    if (nearestDate != null) {
+                        tvNextDraw.setText(displayFormat.format(nearestDate));
+                    } else {
+                        tvNextDraw.setText("No upcoming draws");
+                    }
+
+                })
+                .addOnFailureListener(e -> tvNextDraw.setText("Error loading date"));
     }
 
 }

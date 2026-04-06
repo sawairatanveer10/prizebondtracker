@@ -64,6 +64,7 @@ dependencies {
     implementation libs.vision.common
     implementation libs.material
     implementation libs.firebase.storage
+    implementation libs.volley
     annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'
 
     // 🔹 Unit & UI Testing

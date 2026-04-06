@@ -11,6 +11,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -21,6 +22,8 @@ import java.util.Map;
 public class SignupActivity extends AppCompatActivity {
 
     private TextInputEditText etName, etEmail, etPassword;
+    private TextInputLayout nameLayout, emailLayout, passwordLayout;
+
     private Button btnSignUp;
     private TextView tvGoToLogin;
     private ProgressDialog progressDialog;
@@ -28,7 +31,6 @@ public class SignupActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private FirebaseFirestore firestore;
 
-    // 🔹 Use the same appId as AddBondActivity for consistency
     private final String appId = "default-app-id";
 
     @Override
@@ -39,6 +41,11 @@ public class SignupActivity extends AppCompatActivity {
         etName = findViewById(R.id.etName);
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
+
+        nameLayout = findViewById(R.id.nameLayout);
+        emailLayout = findViewById(R.id.emailLayout);
+        passwordLayout = findViewById(R.id.passwordLayout);
+
         btnSignUp = findViewById(R.id.btnSignUp);
         tvGoToLogin = findViewById(R.id.tvGoToLogin);
 
@@ -50,6 +57,7 @@ public class SignupActivity extends AppCompatActivity {
         firestore = FirebaseFirestore.getInstance();
 
         btnSignUp.setOnClickListener(v -> createAccount());
+
         tvGoToLogin.setOnClickListener(v -> {
             startActivity(new Intent(SignupActivity.this, LoginActivity.class));
             finish();
@@ -57,65 +65,43 @@ public class SignupActivity extends AppCompatActivity {
     }
 
     private void createAccount() {
-        String name = etName.getText() != null ? etName.getText().toString().trim() : "";
-        String email = etEmail.getText() != null ? etEmail.getText().toString().trim() : "";
-        String password = etPassword.getText() != null ? etPassword.getText().toString().trim() : "";
 
+        String name     = getText(etName);
+        String email    = getText(etEmail);
+        String password = getText(etPassword);
+
+        // ✅ Name
         if (TextUtils.isEmpty(name)) {
-            etName.setError("Enter full name");
-            return;
-        }
-                if (TextUtils.isEmpty(email)) {
-            etEmail.setError("Enter email");
-            return;
-        }
-              if (TextUtils.isEmpty(password) || password.length() < 6) {
-            etPassword.setError("Password must be at least 6 characters");
-            return;
-        }
-        if (!isValidEmail(email)) {
-            etEmail.setError("Enter a valid email");
+            nameLayout.setError("Full name is required.");
             return;
         }
 
-        if (!password.matches(".*[A-Z].*")) {
-            etPassword.setError("Password must contain at least 1 uppercase letter (A-Z)");
-            return;
-        }
+        // ✅ Email
+        if (!validateEmail(email)) return;
 
-        if (!password.matches(".*[a-z].*")) {
-            etPassword.setError("Password must contain at least 1 lowercase letter (a-z)");
-            return;
-        }
-
-        if (!password.matches(".*\\d.*")) {
-            etPassword.setError("Password must contain at least 1 number (0-9)");
-            return;
-        }
-
-        if (!password.matches(".*[@#$%^&+=!].*")) {
-            etPassword.setError("Password must contain at least 1 special character");
-            return;
-        }
+        // ✅ Password
+        if (!validatePassword(password)) return;
 
         progressDialog.show();
+
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
+
                     if (task.isSuccessful()) {
+
                         FirebaseUser user = mAuth.getCurrentUser();
+
                         if (user != null) {
+
                             String uid = user.getUid();
 
-                            // 🔹 Create user profile map
                             Map<String, Object> userMap = new HashMap<>();
                             userMap.put("uid", uid);
                             userMap.put("name", name);
                             userMap.put("email", email);
                             userMap.put("createdAt", System.currentTimeMillis());
-                            userMap.put("blocked", false); // <-- default blocked status
+                            userMap.put("blocked", false);
 
-
-                            // 🔹 Save inside /artifacts/{appId}/users/{uid}
                             firestore.collection("artifacts")
                                     .document(appId)
                                     .collection("users")
@@ -123,31 +109,151 @@ public class SignupActivity extends AppCompatActivity {
                                     .set(userMap)
                                     .addOnSuccessListener(aVoid -> {
                                         progressDialog.dismiss();
-                                        Toast.makeText(SignupActivity.this, "Account created", Toast.LENGTH_SHORT).show();
-                                        startActivity(new Intent(SignupActivity.this, LoginActivity.class));
+                                        Toast.makeText(this, "Account created", Toast.LENGTH_SHORT).show();
+                                        startActivity(new Intent(this, LoginActivity.class));
                                         finish();
                                     })
                                     .addOnFailureListener(e -> {
                                         progressDialog.dismiss();
-                                        Toast.makeText(SignupActivity.this, "Failed to save profile: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                                        Toast.makeText(this, "Failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
                                     });
-                        } else {
-                            progressDialog.dismiss();
-                            Toast.makeText(SignupActivity.this, "Signup failed (no user).", Toast.LENGTH_SHORT).show();
                         }
+
                     } else {
                         progressDialog.dismiss();
-                        String err = task.getException() != null ? task.getException().getMessage() : "Signup failed";
-                        Toast.makeText(SignupActivity.this, err, Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, "Signup failed. Try again.", Toast.LENGTH_LONG).show();
                     }
                 });
-
-
-    }
-    private boolean isValidEmail(String email) {
-        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
-                && email.endsWith(".com");
     }
 
+    // 🔹 Helper
+    private String getText(TextInputEditText field) {
+        return field.getText() != null ? field.getText().toString().trim() : "";
+    }
 
+    // 🔥 EMAIL VALIDATION (YOUR FULL VERSION)
+    private boolean validateEmail(String email) {
+
+        if (TextUtils.isEmpty(email)) {
+            emailLayout.setError("Email is required.");
+            return false;
+        }
+
+        if (email.contains(" ")) {
+            emailLayout.setError("Email must not contain spaces.");
+            return false;
+        }
+
+        if (email.length() > 254) {
+            emailLayout.setError("Email must not exceed 254 characters.");
+            return false;
+        }
+
+        int atCount = 0;
+        for (char c : email.toCharArray()) if (c == '@') atCount++;
+        if (atCount != 1) {
+            emailLayout.setError("Enter a valid email address.");
+            return false;
+        }
+
+        String localPart  = email.substring(0, email.indexOf('@'));
+        String domainPart = email.substring(email.indexOf('@') + 1);
+
+        if (localPart.isEmpty()) {
+            emailLayout.setError("Enter a valid email address.");
+            return false;
+        }
+
+        if (localPart.startsWith(".") || localPart.endsWith(".")) {
+            emailLayout.setError("Email must not start or end with a dot.");
+            return false;
+        }
+
+        if (email.contains("..")) {
+            emailLayout.setError("Email must not contain consecutive dots.");
+            return false;
+        }
+
+        if (domainPart.isEmpty() || !domainPart.contains(".")) {
+            emailLayout.setError("Enter a valid email address.");
+            return false;
+        }
+
+        String[] domainLabels = domainPart.split("\\.");
+        for (String label : domainLabels) {
+            if (label.isEmpty()) return false;
+
+            if (Character.isDigit(label.charAt(0))) {
+                emailLayout.setError("Invalid domain.");
+                return false;
+            }
+
+            if (label.startsWith("-") || label.endsWith("-")) {
+                emailLayout.setError("Invalid domain.");
+                return false;
+            }
+        }
+
+        String tld = domainLabels[domainLabels.length - 1];
+        if (!tld.matches("[a-zA-Z]{2,}")) {
+            emailLayout.setError("Invalid email ending.");
+            return false;
+        }
+
+        String emailRegex = "^[a-zA-Z0-9._%+\\-]+@([a-zA-Z][a-zA-Z0-9\\-]*\\.)+[a-zA-Z]{2,}$";
+        if (!email.matches(emailRegex)) {
+            emailLayout.setError("Enter valid email (e.g. user@gmail.com).");
+            return false;
+        }
+
+        emailLayout.setError(null);
+        return true;
+    }
+
+    // 🔥 PASSWORD VALIDATION (YOUR FULL VERSION)
+    private boolean validatePassword(String password) {
+
+        if (TextUtils.isEmpty(password)) {
+            passwordLayout.setError("Password is required.");
+            return false;
+        }
+
+        if (password.length() < 6) {
+            passwordLayout.setError("Minimum 6 characters required.");
+            return false;
+        }
+
+        if (password.length() > 128) {
+            passwordLayout.setError("Too long password.");
+            return false;
+        }
+
+        if (!password.matches(".*[A-Z].*")) {
+            passwordLayout.setError("Must contain uppercase letter.");
+            return false;
+        }
+
+        if (!password.matches(".*[a-z].*")) {
+            passwordLayout.setError("Must contain lowercase letter.");
+            return false;
+        }
+
+        if (!password.matches(".*[0-9].*")) {
+            passwordLayout.setError("Must contain a number.");
+            return false;
+        }
+
+        if (!password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*")) {
+            passwordLayout.setError("Must contain special character.");
+            return false;
+        }
+
+        if (password.contains(" ")) {
+            passwordLayout.setError("No spaces allowed.");
+            return false;
+        }
+
+        passwordLayout.setError(null);
+        return true;
+    }
 }

@@ -153,28 +153,30 @@
                     android:hint="Bond Series (Optional)"
                     android:layout_marginTop="16dp"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
+
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etBondSeries"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="textCapCharacters"
-                        android:maxLength="2"/>
+                        android:maxLength="1" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- 5. Draw City/Region (Optional) -->
                 <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Draw City/Region (Optional)"
                     android:layout_marginTop="16dp"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
-                    <com.google.android.material.textfield.TextInputEditText
+                    android:hint="Draw City/Region (Optional)">
+
+                    <AutoCompleteTextView
                         android:id="@+id/etDrawCity"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="textCapWords"/>
-
-
+                        android:layout_height="52dp"
+                        android:inputType="textCapWords"
+                        android:paddingStart="13dp"
+                        android:textSize="16sp" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -233,6 +235,7 @@
                     android:hint="Starting Bond Number (e.g., A-123400)*"
                     android:layout_marginTop="16dp"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
+
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etStartBondNumber"
                         android:layout_width="match_parent"
@@ -248,62 +251,66 @@
                     android:hint="Ending Bond Number (e.g., A-123450)*"
                     android:layout_marginTop="16dp"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
+
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etEndBondNumber"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="textCapCharacters"
                         android:maxLength="10"/>
-                    <!-- Purchase Date (Optional) -->
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Purchase Date (Optional)"
-                        android:layout_marginTop="16dp"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
-                        app:endIconDrawable="@drawable/ic_calender"
-                        app:endIconMode="custom">
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etPurchaseDateBulk"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:inputType="date"
-                            android:focusable="false"
-                            android:clickable="true"/>
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <!-- Bond Series (Optional) -->
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Bond Series (Optional)"
-                        android:layout_marginTop="16dp"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etBondSeriesBulk"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:inputType="textCapCharacters"
-                            android:maxLength="2"/>
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <!-- Draw City/Region (Optional) -->
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Draw City/Region (Optional)"
-                        android:layout_marginTop="16dp"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etDrawCityBulk"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:inputType="textCapWords"/>
-                    </com.google.android.material.textfield.TextInputLayout>
-
-
                 </com.google.android.material.textfield.TextInputLayout>
 
+                <!-- Purchase Date -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Purchase Date (Optional)"
+                    android:layout_marginTop="16dp"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+                    app:endIconDrawable="@drawable/ic_calender"
+                    app:endIconMode="custom">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etPurchaseDateBulk"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="date"
+                        android:focusable="false"
+                        android:clickable="true"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Bond Series -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Bond Series (Optional)"
+                    android:layout_marginTop="16dp"
+                    android:maxLength="1"
+                    android:inputType="textCapCharacters"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etBondSeriesBulk"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textCapCharacters"
+                        android:maxLength="2"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Draw City -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Draw City/Region (Optional)"
+                    android:layout_marginTop="16dp"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/etDrawCityBulk"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textCapWords"/>
+                </com.google.android.material.textfield.TextInputLayout>
                 <TextView
                     android:id="@+id/tvBulkCount"
                     android:layout_width="match_parent"

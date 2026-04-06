@@ -1,36 +1,80 @@
 package com.example.prizebondtracker;
 
+import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import java.util.List;
 
-public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.ViewHolder> {
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 
-    List<NotificationModel> list;
+import java.util.ArrayList;
 
-    public NotificationAdapter(List<NotificationModel> list) {
+public class NotificationAdapter
+        extends RecyclerView.Adapter<NotificationAdapter.ViewHolder> {
+
+    ArrayList<NotificationModel> list;
+
+    public NotificationAdapter(ArrayList<NotificationModel> list) {
         this.list = list;
     }
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext())
+    public ViewHolder onCreateViewHolder(
+            @NonNull ViewGroup parent, int viewType) {
+
+        View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.notification_item, parent, false);
-        return new ViewHolder(v);
+
+        return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+    public void onBindViewHolder(
+            @NonNull ViewHolder holder, int position) {
+
         NotificationModel model = list.get(position);
 
         holder.title.setText(model.getTitle());
         holder.message.setText(model.getMessage());
         holder.time.setText(model.getTime());
+
+        if (!model.isRead()) {
+            holder.title.setTypeface(null, Typeface.BOLD);
+        } else {
+            holder.title.setTypeface(null, Typeface.NORMAL);
+        }
+
+        holder.itemView.setOnClickListener(v -> {
+
+            FirebaseFirestore.getInstance()
+                    .collection("artifacts")
+                    .document("default-app-id")
+                    .collection("users")
+                    .document(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                    .collection("notifications")
+                    .document(model.getId())
+                    .update("read", true);
+        });
+
+        holder.itemView.setOnLongClickListener(v -> {
+
+            FirebaseFirestore.getInstance()
+                    .collection("artifacts")
+                    .document("default-app-id")
+                    .collection("users")
+                    .document(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                    .collection("notifications")
+                    .document(model.getId())
+                    .delete();
+
+            return true;
+        });
     }
 
     @Override
@@ -38,16 +82,16 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         return list.size();
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    static class ViewHolder extends RecyclerView.ViewHolder {
 
         TextView title, message, time;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
 
-            title = itemView.findViewById(R.id.notiTitle);
-            message = itemView.findViewById(R.id.notiMessage);
-            time = itemView.findViewById(R.id.notiTime);
+            title = itemView.findViewById(R.id.tvTitle);
+            message = itemView.findViewById(R.id.tvMessage);
+            time = itemView.findViewById(R.id.tvTime);
         }
     }
 }

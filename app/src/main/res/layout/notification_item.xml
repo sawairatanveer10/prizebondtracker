@@ -17,7 +17,6 @@
         android:padding="12dp"
         android:gravity="center_vertical">
 
-        <!-- Notification Icon -->
         <ImageView
             android:id="@+id/icon"
             android:layout_width="52dp"
@@ -35,7 +34,7 @@
             android:layout_height="wrap_content">
 
             <TextView
-                android:id="@+id/notiTitle"
+                android:id="@+id/tvTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Notification Title"
@@ -44,7 +43,7 @@
                 android:textStyle="bold"/>
 
             <TextView
-                android:id="@+id/notiMessage"
+                android:id="@+id/tvMessage"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="This is the message"
@@ -53,7 +52,7 @@
                 android:layout_marginTop="2dp"/>
 
             <TextView
-                android:id="@+id/notiTime"
+                android:id="@+id/tvTime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Just now"
@@ -61,5 +60,6 @@
                 android:textColor="#777"
                 android:layout_marginTop="4dp"/>
         </LinearLayout>
+
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

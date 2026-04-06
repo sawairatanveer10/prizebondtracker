@@ -193,38 +193,60 @@ public class ProfileActivity extends Fragment {
                 .addOnFailureListener(e -> Toast.makeText(getActivity(), "Failed to update profile: " + e.getMessage(), Toast.LENGTH_LONG).show());
     }
 
-    private void showChangePasswordDialog(){
-        View view = getLayoutInflater().inflate(R.layout.activity_dialog_change_password,null);
+    private void showChangePasswordDialog() {
+        View view = getLayoutInflater().inflate(R.layout.activity_dialog_change_password, null);
         TextInputEditText etCurrent = view.findViewById(R.id.etCurrentPassword);
         TextInputEditText etNew = view.findViewById(R.id.etNewPassword);
         TextInputEditText etConfirm = view.findViewById(R.id.etConfirmNewPassword);
 
-        new AlertDialog.Builder(getActivity())
+        AlertDialog dialog = new AlertDialog.Builder(getActivity())
                 .setView(view)
-                .setPositiveButton("Save",(dialog,which)->{
-                    String current = etCurrent.getText().toString().trim();
-                    String newPass = etNew.getText().toString().trim();
-                    String confirm = etConfirm.getText().toString().trim();
+                .setNegativeButton("Cancel", null) // Cancel always dismisses
+                .setPositiveButton("Save", null) // We'll override below
+                .create();
 
-                    if(current.isEmpty() || newPass.isEmpty() || confirm.isEmpty()){
-                        Toast.makeText(getActivity(),"All fields required",Toast.LENGTH_SHORT).show();
-                        return;
-                    }
+        dialog.show();
 
-                    if(!newPass.equals(confirm)){
-                        Toast.makeText(getActivity(),"Passwords do not match",Toast.LENGTH_SHORT).show();
-                        return;
-                    }
+        // Override the positive button to prevent automatic dismiss
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String current = etCurrent.getText().toString().trim();
+            String newPass = etNew.getText().toString().trim();
+            String confirm = etConfirm.getText().toString().trim();
 
-                    if(!isPasswordStrong(newPass)){
-                        Toast.makeText(getActivity(),"Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.",Toast.LENGTH_LONG).show();
-                        return;
-                    }
+            boolean valid = true;
 
-                    changePassword(current,newPass);
-                })
-                .setNegativeButton("Cancel",null)
-                .show();
+            if (current.isEmpty()) {
+                etCurrent.setError("Current password required");
+                valid = false;
+            } else {
+                etCurrent.setError(null);
+            }
+
+            if (newPass.isEmpty()) {
+                etNew.setError("New password required");
+                valid = false;
+            } else if (!isPasswordStrong(newPass)) {
+                etNew.setError("Password must be 6+ chars with upper, lower, number & special char");
+                valid = false;
+            } else {
+                etNew.setError(null);
+            }
+
+            if (confirm.isEmpty()) {
+                etConfirm.setError("Confirm your password");
+                valid = false;
+            } else if (!newPass.equals(confirm)) {
+                etConfirm.setError("Passwords do not match");
+                valid = false;
+            } else {
+                etConfirm.setError(null);
+            }
+
+            if (valid) {
+                changePassword(current, newPass);
+                dialog.dismiss(); // dismiss only if all validations pass
+            }
+        });
     }
 
     private void changePassword(String currentPassword,String newPassword){
@@ -256,8 +278,8 @@ public class ProfileActivity extends Fragment {
 
 
     private boolean isPasswordStrong(String password) {
-        // Minimum 8 chars, at least 1 upper, 1 lower, 1 number, 1 special char
-        String passwordPattern = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!]).{8,}$";
+        // Minimum 6 chars, at least 1 upper, 1 lower, 1 number, 1 special char
+        String passwordPattern = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!]).{6,}$";
         return password.matches(passwordPattern);
     }
 

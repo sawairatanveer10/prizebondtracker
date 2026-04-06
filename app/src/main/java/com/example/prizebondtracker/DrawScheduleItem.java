@@ -15,6 +15,6 @@ public class DrawScheduleItem {
 
     public String getDenomination() { return denomination; }
     public String getDrawDate() { return drawDate; }
-    public String getDrawNumber() { return drawNumber; }
+   public String getDrawNumber() { return drawNumber; }
     public String getDrawCity() { return drawCity; }
 }

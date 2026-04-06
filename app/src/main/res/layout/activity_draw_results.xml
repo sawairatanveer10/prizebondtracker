@@ -12,10 +12,9 @@
       android:layout_height="?attr/actionBarSize"
       android:background="?attr/colorPrimary"
       app:titleTextColor="@android:color/white"
-      app:navigationIcon="@drawable/ic_arrow_back"
-      />
+      app:navigationIcon="@drawable/ic_arrow_back"/>
 
-  <!-- PAGE CONTENT -->
+  <!-- CONTENT -->
   <ScrollView
       android:layout_width="match_parent"
       android:layout_height="match_parent"
@@ -27,7 +26,21 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-      <!-- LABEL: YEAR -->
+      <!-- DENOMINATION -->
+      <TextView
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:text="Denomination"
+          android:textSize="16sp"
+          android:textStyle="bold"
+          android:textColor="#2E7D32"/>
+
+      <Spinner
+          android:id="@+id/spinnerDenomination"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"/>
+
+      <!-- YEAR -->
       <TextView
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
@@ -35,33 +48,14 @@
           android:textSize="16sp"
           android:textStyle="bold"
           android:textColor="#2E7D32"
-          android:layout_marginTop="4dp"/>
+          android:layout_marginTop="16dp"/>
 
       <Spinner
           android:id="@+id/spinnerYear"
           android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:layout_marginTop="4dp"/>
+          android:layout_height="wrap_content"/>
 
-
-      <!-- LABEL: DENOMINATION -->
-      <TextView
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:text="Denomination"
-          android:textSize="16sp"
-          android:textStyle="bold"
-          android:textColor="#2E7D32"
-          android:layout_marginTop="16dp"/>
-
-      <Spinner
-          android:id="@+id/spinnerDenomination"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:layout_marginTop="4dp"/>
-
-
-      <!-- LABEL: DRAW DATE -->
+      <!-- DRAW DATE -->
       <TextView
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
@@ -74,21 +68,18 @@
       <Spinner
           android:id="@+id/spinnerDrawDate"
           android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:layout_marginTop="4dp"/>
+          android:layout_height="wrap_content"/>
 
-
-      <!-- LABEL: SEARCH NUMBERS -->
+      <!-- SEARCH -->
       <TextView
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
-          android:text="Search Numbers"
+          android:text="Search Number"
           android:textSize="16sp"
           android:textStyle="bold"
           android:textColor="#2E7D32"
           android:layout_marginTop="16dp"/>
 
-      <!-- SEARCH BAR -->
       <LinearLayout
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
@@ -111,18 +102,7 @@
             android:layout_marginStart="8dp"/>
       </LinearLayout>
 
-
-      <!-- PDF BUTTON -->
-      <Button
-          android:id="@+id/btnViewPDF"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:text="View PDF"
-          android:layout_marginTop="16dp"
-          android:layout_gravity="end" />
-
-
-      <!-- FIRST PRIZE -->
+      <!-- FIRST -->
       <TextView
           android:id="@+id/tvFirstPrize"
           android:layout_width="match_parent"
@@ -133,7 +113,7 @@
           android:textColor="#2E7D32"
           android:layout_marginTop="24dp"/>
 
-      <!-- SECOND PRIZE -->
+      <!-- SECOND -->
       <TextView
           android:id="@+id/tvSecondPrize"
           android:layout_width="match_parent"
@@ -144,9 +124,8 @@
           android:textColor="#1565C0"
           android:layout_marginTop="8dp"/>
 
-      <!-- THIRD PRIZE HEADER -->
+      <!-- THIRD -->
       <TextView
-          android:id="@+id/tvThirdHeader"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
           android:text="Third Prize Numbers"
@@ -154,7 +133,6 @@
           android:textSize="16sp"
           android:layout_marginTop="16dp"/>
 
-      <!-- THIRD PRIZE LIST -->
       <androidx.recyclerview.widget.RecyclerView
           android:id="@+id/rvThirdPrize"
           android:layout_width="match_parent"
@@ -162,7 +140,6 @@
           android:layout_marginTop="8dp"/>
 
     </LinearLayout>
-
   </ScrollView>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
