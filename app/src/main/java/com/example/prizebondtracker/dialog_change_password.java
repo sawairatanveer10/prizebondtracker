@@ -1,7 +1,9 @@
 package com.example.prizebondtracker;
 
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Toast;
 
@@ -11,6 +13,10 @@ import androidx.appcompat.widget.Toolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.EmailAuthProvider;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 // You would need to import Firebase classes if using Firebase
 // import com.google.firebase.auth.AuthCredential;
 // import com.google.firebase.auth.EmailAuthProvider;
@@ -27,10 +33,8 @@ public class dialog_change_password extends AppCompatActivity {
     private TextInputLayout tilCurrentPassword, tilNewPassword, tilConfirmNewPassword;
     private TextInputEditText etCurrentPassword, etNewPassword, etConfirmNewPassword;
     private MaterialButton btnSavePassword;
-
-    // Firebase (or other Auth) variables would be initialized here
-    // private FirebaseAuth mAuth;
-    // private FirebaseUser currentUser;
+    private FirebaseAuth mAuth;
+    private FirebaseUser currentUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,8 +42,8 @@ public class dialog_change_password extends AppCompatActivity {
         setContentView(R.layout.activity_dialog_change_password);
 
         // 1. Initialize Firebase Auth (or your backend client)
-        // mAuth = FirebaseAuth.getInstance();
-        // currentUser = mAuth.getCurrentUser();
+        mAuth = FirebaseAuth.getInstance();
+        currentUser = mAuth.getCurrentUser();
 
         // 2. Setup Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -51,14 +55,50 @@ public class dialog_change_password extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(v -> finish()); // Handle back navigation
 
         // 3. Initialize Views
-        tilCurrentPassword = findViewById(R.id.etCurrentPassword);
-        tilNewPassword = findViewById(R.id.etNewPassword);
-        tilConfirmNewPassword = findViewById(R.id.etConfirmNewPassword);
+        tilCurrentPassword = findViewById(R.id.tilCurrentPassword);
+        tilNewPassword = findViewById(R.id.tilNewPassword);
+        tilConfirmNewPassword = findViewById(R.id.tilConfirmNewPassword);
 
         etCurrentPassword = findViewById(R.id.etCurrentPassword);
         etNewPassword = findViewById(R.id.etNewPassword);
         etConfirmNewPassword = findViewById(R.id.etConfirmNewPassword);
 
+
+        btnSavePassword = findViewById(R.id.btnSavePassword);
+
+        btnSavePassword.setOnClickListener(v -> {
+            attemptPasswordChange();
+        });
+
+        etNewPassword.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                tilNewPassword.setError(null);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
+
+        etCurrentPassword.addTextChangedListener(new TextWatcher() {
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                tilCurrentPassword.setError(null);
+            }
+            public void afterTextChanged(Editable s) {}
+        });
+
+        etConfirmNewPassword.addTextChangedListener(new TextWatcher() {
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                tilConfirmNewPassword.setError(null);
+            }
+            public void afterTextChanged(Editable s) {}
+        });
     }
 
     /**
@@ -86,31 +126,33 @@ public class dialog_change_password extends AppCompatActivity {
         }
 
         // The actual change logic
-        // changePassword(currentPassword, newPassword);
+        changePassword(currentPassword, newPassword);
 
-        // Placeholder for successful attempt (remove when actual logic is implemented)
-        Toast.makeText(this, "Validation successful. Initiating password update...", Toast.LENGTH_SHORT).show();
     }
 
     /**
      * Handles local input validation.
      */
     private boolean validateFields(String currentPass, String newPass, String confirmPass) {
+
         boolean valid = true;
 
         if (TextUtils.isEmpty(currentPass)) {
-            tilCurrentPassword.setError("Required");
+            tilCurrentPassword.setError("Current password required");
             valid = false;
+        } else {
+            tilCurrentPassword.setError(null);
         }
 
-        if (TextUtils.isEmpty(newPass) || newPass.length() < 6) {
-            tilNewPassword.setError("Password must be at least 6 characters.");
+        if (!validatePassword(newPass, tilNewPassword)) {
             valid = false;
         }
 
         if (!newPass.equals(confirmPass)) {
-            tilConfirmNewPassword.setError("Passwords do not match.");
+            tilConfirmNewPassword.setError("Passwords do not match");
             valid = false;
+        } else {
+            tilConfirmNewPassword.setError(null);
         }
 
         return valid;
@@ -123,31 +165,77 @@ public class dialog_change_password extends AppCompatActivity {
      * @param currentPassword The user's current password for re-authentication.
      * @param newPassword The new password to set.
      */
-    /*
-    private void changePassword(String currentPassword, String newPassword) {
-        // 1. Create a credential using the user's current password
-        AuthCredential credential = EmailAuthProvider.getCredential(currentUser.getEmail(), currentPassword);
 
-        // 2. Re-authenticate the user
-        currentUser.reauthenticate(credential)
-            .addOnCompleteListener(task -> {
-                if (task.isSuccessful()) {
-                    // 3. If re-authentication succeeds, update the password
-                    currentUser.updatePassword(newPassword)
-                        .addOnCompleteListener(updateTask -> {
-                            if (updateTask.isSuccessful()) {
-                                Toast.makeText(ChangePasswordActivity.this, "Password updated successfully!", Toast.LENGTH_SHORT).show();
-                                finish(); // Close the activity
-                            } else {
-                                Toast.makeText(ChangePasswordActivity.this, "Error updating password.", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                } else {
-                    // Re-authentication failed (likely due to wrong current password)
-                    tilCurrentPassword.setError("Incorrect current password.");
-                    Toast.makeText(ChangePasswordActivity.this, "Authentication failed. Check your current password.", Toast.LENGTH_LONG).show();
-                }
-            });
+    private void changePassword(String currentPassword, String newPassword) {
+
+        if (currentUser == null || currentUser.getEmail() == null) return;
+
+        AuthCredential credential = EmailAuthProvider
+                .getCredential(currentUser.getEmail(), currentPassword);
+
+        currentUser.reauthenticate(credential).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+
+                currentUser.updatePassword(newPassword).addOnCompleteListener(task1 -> {
+                    if (task1.isSuccessful()) {
+                        Toast.makeText(this, "Password updated!", Toast.LENGTH_LONG).show();
+                        finish(); // close screen
+                    } else {
+                        Toast.makeText(this, "Error: " + task1.getException().getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                });
+
+            } else {
+                tilCurrentPassword.setError("Wrong current password");
+            }
+        });
     }
-    */
+
+
+    private boolean validatePassword(String password, TextInputLayout layout) {
+
+        if (TextUtils.isEmpty(password)) {
+            layout.setError("Password is required.");
+            return false;
+        }
+
+        if (password.length() < 6) {
+            layout.setError("Minimum 6 characters required.");
+            return false;
+        }
+
+        if (password.length() > 128) {
+            layout.setError("Too long password.");
+            return false;
+        }
+
+        if (!password.matches(".*[A-Z].*")) {
+            layout.setError("Must contain uppercase letter.");
+            return false;
+        }
+
+        if (!password.matches(".*[a-z].*")) {
+            layout.setError("Must contain lowercase letter.");
+            return false;
+        }
+
+        if (!password.matches(".*[0-9].*")) {
+            layout.setError("Must contain a number.");
+            return false;
+        }
+
+        if (!password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*")) {
+            layout.setError("Must contain special character.");
+            return false;
+        }
+
+        if (password.contains(" ")) {
+            layout.setError("No spaces allowed.");
+            return false;
+        }
+
+        layout.setError(null);
+        return true;
+    }
+   
 }

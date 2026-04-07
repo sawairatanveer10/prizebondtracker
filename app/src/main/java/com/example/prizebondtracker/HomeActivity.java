@@ -1,11 +1,10 @@
 package com.example.prizebondtracker;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
-import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,24 +17,36 @@ public class HomeActivity extends AppCompatActivity {
 
     BottomNavigationView bottomNav;
 
+    // Manager ko field mein rakho taake onDestroy mein stop kar sako
+    private BondNotificationManager notificationManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        new BondNotificationManager(this);
+        // Android 13+ notification permission
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
+                    != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(
+                        new String[]{android.Manifest.permission.POST_NOTIFICATIONS},
+                        100
+                );
+            }
+        }
 
+        // ── Notification Manager initialize karo ────────────────────────────
+        notificationManager = new BondNotificationManager(this);
+        // ────────────────────────────────────────────────────────────────────
 
         bottomNav = findViewById(R.id.bottomNav);
-
-        // Load HomeFragment by default
         loadFragment(new HomeFragment());
 
-        // Bottom navigation listener
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
-
             Fragment fragment = null;
+
             if (id == R.id.nav_home) {
                 fragment = new HomeFragment();
             } else if (id == R.id.nav_my_bonds) {
@@ -52,7 +63,23 @@ public class HomeActivity extends AppCompatActivity {
             }
             return false;
         });
+
+        // Check if opened from notification — profile tab open karo
+        if (getIntent() != null &&
+                "app_preferences".equals(getIntent().getStringExtra("open_section"))) {
+            bottomNav.setSelectedItemId(R.id.nav_profile);
+        }
     }
+
+    // ── Memory leak rokne ke liye listener band karo ─────────────────────────
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (notificationManager != null) {
+            notificationManager.stopListening();
+        }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
 
     private void loadFragment(Fragment fragment) {
         getSupportFragmentManager()
@@ -62,7 +89,8 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     public void showCustomDropdownMenu(View anchorView) {
-        android.view.LayoutInflater inflater = (android.view.LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        android.view.LayoutInflater inflater =
+                (android.view.LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         View customMenuView = inflater.inflate(R.layout.home_menu, null);
 
         final android.widget.PopupWindow popupWindow = new android.widget.PopupWindow(
@@ -73,7 +101,7 @@ public class HomeActivity extends AppCompatActivity {
         );
 
         customMenuView.findViewById(R.id.menu_add_bond).setOnClickListener(v -> {
-            startActivity(new android.content.Intent(HomeActivity.this, AddBondActivity.class));
+            startActivity(new Intent(HomeActivity.this, AddBondActivity.class));
             popupWindow.dismiss();
         });
         customMenuView.findViewById(R.id.menu_view_bonds).setOnClickListener(v -> {
@@ -85,21 +113,16 @@ public class HomeActivity extends AppCompatActivity {
             popupWindow.dismiss();
         });
         customMenuView.findViewById(R.id.menu_view_results).setOnClickListener(v -> {
-            // Add activity/fragment if needed
-            startActivity(new android.content.Intent(HomeActivity.this, DrawResultsActivity.class));
+            startActivity(new Intent(HomeActivity.this, DrawResultsActivity.class));
             popupWindow.dismiss();
         });
         customMenuView.findViewById(R.id.menu_view_probability).setOnClickListener(v -> {
-            // Add activity/fragment if needed
-            startActivity(new android.content.Intent(HomeActivity.this, WinningProbabilityActivity.class));
+            startActivity(new Intent(HomeActivity.this, WinningProbabilityActivity.class));
             popupWindow.dismiss();
         });
         customMenuView.findViewById(R.id.menu_purchasing_suggestions).setOnClickListener(v -> {
-            // Add activity/fragment if needed
-
-            startActivity(new android.content.Intent(HomeActivity.this, BudgetSuggestionsActivity.class));
+            startActivity(new Intent(HomeActivity.this, BudgetSuggestionsActivity.class));
             popupWindow.dismiss();
-
         });
         customMenuView.findViewById(R.id.menu_logout).setOnClickListener(v -> {
             performLogout();
@@ -110,13 +133,11 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void performLogout() {
-        FirebaseAuth.getInstance().signOut(); // Sign out the user
+        FirebaseAuth.getInstance().signOut();
         Toast.makeText(this, "Logged out successfully.", Toast.LENGTH_SHORT).show();
-
-        // Redirect to LoginActivity
         Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
-        finish(); // Finish HomeActivity so user cannot go back
+        finish();
     }
 }

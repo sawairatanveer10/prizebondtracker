@@ -121,7 +121,22 @@ public class SignupActivity extends AppCompatActivity {
 
                     } else {
                         progressDialog.dismiss();
-                        Toast.makeText(this, "Signup failed. Try again.", Toast.LENGTH_LONG).show();
+                        String message = "Signup failed. Try again.";
+
+                        if (task.getException() != null) {
+                            String error = task.getException().getMessage();
+
+                            if (error.contains("The email address is already in use")) {
+                                message = "This email is already registered. Please login instead.";
+                            } else if (error.contains("badly formatted")) {
+                                message = "Invalid email format.";
+                            } else if (error.contains("password is invalid")) {
+                                message = "Password is too weak.";
+                            } else {
+                                message = error;
+                            }
+                        }
+                        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
                     }
                 });
     }

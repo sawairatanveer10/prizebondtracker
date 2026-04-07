@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Notification permission — Android 13+ ke liye zaroori hai -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
        <application
         android:allowBackup="true"
@@ -25,7 +27,9 @@
         <activity
             android:name=".WinningProbabilityActivity"
             android:exported="false" />
-        <activity android:name=".NotificationActivity" />
+           <activity
+               android:name=".NotificationActivity"
+               android:exported="false" />
         <activity
             android:name=".item_draw_card"
             android:exported="false" />

@@ -37,10 +37,9 @@ public class ProfileActivity extends Fragment {
 
     private static final String TAG = "ProfileFragment";
     private static final String APP_ID = "default-app-id";
-    private static final int PICK_IMAGE = 1001;
 
     private ShapeableImageView ivProfilePicture;
-    private MaterialButton btnEditProfile, btnChangePhoto, btnUpdateProfile, btnLogout;
+    private MaterialButton btnEditProfile, btnUpdateProfile, btnLogout;
     private Button btnChangePassword, btnForgotPassword;
     private TextInputEditText etFullName, etEmail, etCityRegion;
     private MaterialSwitch switchNotifications, switchDataVisibility;
@@ -52,7 +51,8 @@ public class ProfileActivity extends Fragment {
     private FirebaseFirestore db;
     private String userId;
 
-    private Uri imageUri;
+    // Flag to prevent listener firing during initial load
+    private boolean isLoadingData = false;
 
     public ProfileActivity() {}
 
@@ -86,39 +86,59 @@ public class ProfileActivity extends Fragment {
 
         btnEditProfile.setOnClickListener(v -> toggleEditCard());
         btnUpdateProfile.setOnClickListener(v -> updateProfile());
-      //  btnChangePhoto.setOnClickListener(v -> openGallery());
         btnLogout.setOnClickListener(v -> showLogoutConfirmation());
 
-        btnChangePassword.setOnClickListener(v -> showChangePasswordDialog());
+        btnChangePassword.setOnClickListener(v ->
+                startActivity(new Intent(getActivity(), dialog_change_password.class)));
+
         btnForgotPassword.setOnClickListener(v -> sendPasswordResetEmail());
+
+        // ─── App Preferences Switch Listeners ───────────────────────────────
+
+        switchNotifications.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isLoadingData) return; // skip during data load
+            savePreference("receive_draw_notification", isChecked);
+            String msg = isChecked
+                    ? "Draw notifications enabled"
+                    : "Draw notifications disabled";
+            Toast.makeText(getActivity(), msg, Toast.LENGTH_SHORT).show();
+        });
+
+        switchDataVisibility.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isLoadingData) return; // skip during data load
+            savePreference("enable_ai_insight", isChecked);
+            String msg = isChecked
+                    ? "AI Insights enabled"
+                    : "AI Insights disabled";
+            Toast.makeText(getActivity(), msg, Toast.LENGTH_SHORT).show();
+        });
+
+        // ────────────────────────────────────────────────────────────────────
 
         Toolbar toolbar = view.findViewById(R.id.toolbar);
         toolbar.setNavigationOnClickListener(v -> {
             if (getActivity() != null) {
-                // Start HomeActivity
                 startActivity(new Intent(getActivity(), HomeActivity.class));
-                getActivity().finish(); // optional, close current fragment host activity
+                getActivity().finish();
             }
         });
-
     }
 
     private void initViews(View view) {
-        ivProfilePicture = view.findViewById(R.id.ivProfilePicture);
-        btnEditProfile = view.findViewById(R.id.btnEditProfile);
-        // btnChangePhoto = view.findViewById(R.id.btnChangePhoto);
-        btnUpdateProfile = view.findViewById(R.id.btnUpdateProfile);
-        btnLogout = view.findViewById(R.id.btnLogout);
-        btnChangePassword = view.findViewById(R.id.btnChangePassword);
-        btnForgotPassword = view.findViewById(R.id.btnForgotPassword);
-        etFullName = view.findViewById(R.id.etFullName);
-        etEmail = view.findViewById(R.id.etEmail);
-        etCityRegion = view.findViewById(R.id.etCityRegion);
+        ivProfilePicture    = view.findViewById(R.id.ivProfilePicture);
+        btnEditProfile      = view.findViewById(R.id.btnEditProfile);
+        btnUpdateProfile    = view.findViewById(R.id.btnUpdateProfile);
+        btnLogout           = view.findViewById(R.id.btnLogout);
+        btnChangePassword   = view.findViewById(R.id.btnChangePassword);
+        btnForgotPassword   = view.findViewById(R.id.btnForgotPassword);
+        etFullName          = view.findViewById(R.id.etFullName);
+        etEmail             = view.findViewById(R.id.etEmail);
+        etCityRegion        = view.findViewById(R.id.etCityRegion);
         switchNotifications = view.findViewById(R.id.switchNotifications);
-        switchDataVisibility = view.findViewById(R.id.switchDataVisibility);
-        editProfileCard = view.findViewById(R.id.editProfileCard);
-        tvDisplayName = view.findViewById(R.id.tvDisplayName);
-        tvDisplayEmail = view.findViewById(R.id.tvDisplayEmail);
+        switchDataVisibility= view.findViewById(R.id.switchDataVisibility);
+        editProfileCard     = view.findViewById(R.id.editProfileCard);
+        tvDisplayName       = view.findViewById(R.id.tvDisplayName);
+        tvDisplayEmail      = view.findViewById(R.id.tvDisplayEmail);
     }
 
     private void setupToolbar(View view) {
@@ -133,6 +153,8 @@ public class ProfileActivity extends Fragment {
         tvDisplayEmail.setText(email);
         etEmail.setText(email);
 
+        isLoadingData = true; // prevent switch listeners from firing
+
         DocumentReference userDocRef = db.collection("artifacts")
                 .document(APP_ID)
                 .collection("users")
@@ -145,19 +167,47 @@ public class ProfileActivity extends Fragment {
                 etFullName.setText(name != null ? name : "");
                 etCityRegion.setText(doc.getString("city_region"));
 
-                switchNotifications.setChecked(doc.getBoolean("notifications_enabled") != null ? doc.getBoolean("notifications_enabled") : false);
-                switchDataVisibility.setChecked(doc.getBoolean("ai_data_sharing") != null ? doc.getBoolean("ai_data_sharing") : false);
+                // ── Load saved preferences ──────────────────────────────────
+                Boolean drawNotif = doc.getBoolean("receive_draw_notification");
+                Boolean aiInsight = doc.getBoolean("enable_ai_insight");
+
+                switchNotifications.setChecked(drawNotif != null && drawNotif);
+                switchDataVisibility.setChecked(aiInsight != null && aiInsight);
+                // ────────────────────────────────────────────────────────────
             }
-        }).addOnFailureListener(e -> Log.e(TAG, "Failed to load user data: " + e.getMessage()));
+            isLoadingData = false; // re-enable listeners after data loaded
+        }).addOnFailureListener(e -> {
+            isLoadingData = false;
+            Log.e(TAG, "Failed to load user data: " + e.getMessage());
+        });
+    }
+
+    /**
+     * Saves a single boolean preference to Firestore.
+     * Key: "receive_draw_notification" or "enable_ai_insight"
+     */
+    private void savePreference(String key, boolean value) {
+        DocumentReference userDocRef = db.collection("artifacts")
+                .document(APP_ID)
+                .collection("users")
+                .document(userId);
+
+        Map<String, Object> update = new HashMap<>();
+        update.put(key, value);
+
+        userDocRef.set(update, SetOptions.merge())
+                .addOnFailureListener(e ->
+                        Log.e(TAG, "Failed to save preference: " + e.getMessage()));
     }
 
     private void toggleEditCard() {
-        if(editProfileCard.getVisibility() == View.GONE){
+        if (editProfileCard.getVisibility() == View.GONE) {
             editProfileCard.setVisibility(View.VISIBLE);
             editProfileCard.animate().alpha(1f).setDuration(200);
             btnEditProfile.setText("Cancel");
         } else {
-            editProfileCard.animate().alpha(0f).setDuration(150).withEndAction(() -> editProfileCard.setVisibility(View.GONE));
+            editProfileCard.animate().alpha(0f).setDuration(150)
+                    .withEndAction(() -> editProfileCard.setVisibility(View.GONE));
             btnEditProfile.setText("Edit Profile");
         }
     }
@@ -190,125 +240,26 @@ public class ProfileActivity extends Fragment {
                     toggleEditCard();
                     tvDisplayName.setText(newName);
                 })
-                .addOnFailureListener(e -> Toast.makeText(getActivity(), "Failed to update profile: " + e.getMessage(), Toast.LENGTH_LONG).show());
-    }
-
-    private void showChangePasswordDialog() {
-        View view = getLayoutInflater().inflate(R.layout.activity_dialog_change_password, null);
-        TextInputEditText etCurrent = view.findViewById(R.id.etCurrentPassword);
-        TextInputEditText etNew = view.findViewById(R.id.etNewPassword);
-        TextInputEditText etConfirm = view.findViewById(R.id.etConfirmNewPassword);
-
-        AlertDialog dialog = new AlertDialog.Builder(getActivity())
-                .setView(view)
-                .setNegativeButton("Cancel", null) // Cancel always dismisses
-                .setPositiveButton("Save", null) // We'll override below
-                .create();
-
-        dialog.show();
-
-        // Override the positive button to prevent automatic dismiss
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-            String current = etCurrent.getText().toString().trim();
-            String newPass = etNew.getText().toString().trim();
-            String confirm = etConfirm.getText().toString().trim();
-
-            boolean valid = true;
-
-            if (current.isEmpty()) {
-                etCurrent.setError("Current password required");
-                valid = false;
-            } else {
-                etCurrent.setError(null);
-            }
-
-            if (newPass.isEmpty()) {
-                etNew.setError("New password required");
-                valid = false;
-            } else if (!isPasswordStrong(newPass)) {
-                etNew.setError("Password must be 6+ chars with upper, lower, number & special char");
-                valid = false;
-            } else {
-                etNew.setError(null);
-            }
-
-            if (confirm.isEmpty()) {
-                etConfirm.setError("Confirm your password");
-                valid = false;
-            } else if (!newPass.equals(confirm)) {
-                etConfirm.setError("Passwords do not match");
-                valid = false;
-            } else {
-                etConfirm.setError(null);
-            }
-
-            if (valid) {
-                changePassword(current, newPass);
-                dialog.dismiss(); // dismiss only if all validations pass
-            }
-        });
-    }
-
-    private void changePassword(String currentPassword,String newPassword){
-        if(currentUser==null || currentUser.getEmail()==null) return;
-
-        AuthCredential credential = EmailAuthProvider.getCredential(currentUser.getEmail(),currentPassword);
-
-        currentUser.reauthenticate(credential).addOnCompleteListener(task->{
-            if(task.isSuccessful()){
-                currentUser.updatePassword(newPassword).addOnCompleteListener(task1->{
-                    if(task1.isSuccessful()){
-                        Toast.makeText(getActivity(),"Password changed successfully!",Toast.LENGTH_LONG).show();
-                    } else {
-                        Toast.makeText(getActivity(),"Failed: "+task1.getException().getMessage(),Toast.LENGTH_LONG).show();
-                    }
-                });
-            } else {
-                Toast.makeText(getActivity(),"Current password incorrect",Toast.LENGTH_LONG).show();
-            }
-        });
+                .addOnFailureListener(e ->
+                        Toast.makeText(getActivity(), "Failed to update: " + e.getMessage(), Toast.LENGTH_LONG).show());
     }
 
     private void sendPasswordResetEmail() {
-        if (getActivity() == null || currentUser == null || currentUser.getEmail() == null) return;
-
-        // Open ForgotPasswordActivity (professional)
+        if (getActivity() == null || currentUser == null) return;
         startActivity(new Intent(getActivity(), ForgotPasswordActivity.class));
     }
 
-
-    private boolean isPasswordStrong(String password) {
-        // Minimum 6 chars, at least 1 upper, 1 lower, 1 number, 1 special char
-        String passwordPattern = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!]).{6,}$";
-        return password.matches(passwordPattern);
-    }
-
-    /*private void openGallery(){
-        Intent intent = new Intent(Intent.ACTION_PICK);
-        intent.setType("image/*");
-        startActivityForResult(intent,PICK_IMAGE);
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode,resultCode,data);
-        if(requestCode==PICK_IMAGE && resultCode==getActivity().RESULT_OK && data!=null){
-            imageUri = data.getData();
-            ivProfilePicture.setImageURI(imageUri);
-        }
-    }*/
-
-    private void showLogoutConfirmation(){
+    private void showLogoutConfirmation() {
         new AlertDialog.Builder(getActivity())
                 .setTitle("Logout")
                 .setMessage("Are you sure you want to log out?")
-                .setPositiveButton("Yes",(dialog, which)->{
+                .setPositiveButton("Yes", (dialog, which) -> {
                     mAuth.signOut();
                     Intent intent = new Intent(getActivity(), LoginActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
                 })
-                .setNegativeButton("Cancel",null)
+                .setNegativeButton("Cancel", null)
                 .show();
     }
 }
