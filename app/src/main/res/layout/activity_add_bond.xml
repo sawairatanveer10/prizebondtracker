@@ -308,8 +308,10 @@
                     <AutoCompleteTextView
                         android:id="@+id/etDrawCityBulk"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="textCapWords"/>
+                        android:layout_height="52dp"
+                        android:inputType="textCapWords"
+                        android:paddingStart="13dp"
+                        android:textSize="16sp"/>
                 </com.google.android.material.textfield.TextInputLayout>
                 <TextView
                     android:id="@+id/tvBulkCount"

@@ -16,6 +16,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.text.ParseException;
@@ -33,6 +34,8 @@ public class HomeFragment extends Fragment {
     // Fragment Content Views
     private MaterialButton btnQuickAdd, btnViewRecommendations;
     private MaterialCardView cardAI;
+    private TextView tvBadge;
+    private ListenerRegistration badgeListener;
 
     public HomeFragment() {}
 
@@ -54,6 +57,7 @@ public class HomeFragment extends Fragment {
         tvSubtitle = view.findViewById(R.id.tvSubtitle);
         tvTotalBonds = view.findViewById(R.id.tvTotalBonds);
         tvNextDraw = view.findViewById(R.id.tvNextDraw);
+        tvBadge = view.findViewById(R.id.tvBadge);
 
         // Initialize Fragment Content
         btnQuickAdd = view.findViewById(R.id.btnQuickAdd);
@@ -64,12 +68,13 @@ public class HomeFragment extends Fragment {
         loadUserData();
         loadBondCount();
         loadNextDrawDate();
+        listenForNotificationCount();
 
         // Set click listeners
         btnQuickAdd.setOnClickListener(v -> startActivity(new Intent(getActivity(), AddBondActivity.class)));
         btnViewRecommendations.setOnClickListener(v -> startActivity(new Intent(getActivity(), BudgetSuggestionsActivity.class)));
-        btnNotifications.setOnClickListener(v -> startActivity(new Intent(getActivity(), NotificationActivity.class)));
-
+        //btnNotifications.setOnClickListener(v -> startActivity(new Intent(getActivity(), NotificationActivity.class)));
+        btnNotifications.setOnClickListener(v -> checkNotificationPreference());
         ivMenuIcon.setOnClickListener(v -> {
             if (getActivity() instanceof HomeActivity) {
                 ((HomeActivity)getActivity()).showCustomDropdownMenu(v);
@@ -181,4 +186,84 @@ public class HomeFragment extends Fragment {
                 .addOnFailureListener(e -> tvNextDraw.setText("Error loading date"));
     }
 
+    private void listenForNotificationCount() {
+
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String appId = "default-app-id";
+
+        badgeListener = FirebaseFirestore.getInstance()
+                .collection("artifacts")
+                .document(appId)
+                .collection("users")
+                .document(userId)
+                .collection("notifications")
+                .whereEqualTo("read", false)
+                .addSnapshotListener((snapshots, error) -> {
+
+                    if (error != null || snapshots == null) return;
+
+                    int count = snapshots.size();
+
+                    if (count > 0) {
+                        tvBadge.setText(count > 99 ? "99+" : String.valueOf(count));
+                        tvBadge.setVisibility(View.VISIBLE);
+                    } else {
+                        tvBadge.setVisibility(View.GONE);
+                    }
+                });
+    }
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        if (badgeListener != null) {
+            badgeListener.remove();
+        }
+    }
+
+    private void checkNotificationPreference() {
+
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) return;
+
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String appId = "default-app-id";
+
+        FirebaseFirestore.getInstance()
+                .collection("artifacts")
+                .document(appId)
+                .collection("users")
+                .document(userId)
+                .get()
+                .addOnSuccessListener(doc -> {
+
+                    Boolean isEnabled = doc.getBoolean("receive_draw_notification");
+
+                    if (isEnabled != null && isEnabled) {
+                        // ✅ OPEN NOTIFICATION PAGE
+                        startActivity(new Intent(getActivity(), NotificationActivity.class));
+
+                    } else {
+                        // 🔒 SHOW POPUP
+                        showNotificationDisabledDialog();
+                    }
+                })
+                .addOnFailureListener(e -> showNotificationDisabledDialog());
+    }
+
+    private void showNotificationDisabledDialog() {
+
+        new androidx.appcompat.app.AlertDialog.Builder(getActivity())
+                .setTitle("Notifications Disabled")
+                .setMessage("This page will open only when you enable notifications.\n\n"
+                        + "Go to Profile → App Preferences and turn ON \"Receive Notifications\".")
+                .setCancelable(false)
+                .setPositiveButton("Go to Settings", (dialog, which) -> {
+
+                    Intent intent = new Intent(getActivity(), HomeActivity.class);
+                    intent.putExtra("open_section", "app_preferences");
+                    startActivity(intent);
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
 }

@@ -60,6 +60,15 @@
                 android:textColor="#777"
                 android:layout_marginTop="4dp"/>
         </LinearLayout>
-
+        <ImageView
+            android:id="@+id/btnDelete"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:padding="4dp"
+            android:src="@drawable/ic_delete"
+            app:tint="@color/status_error"
+            android:layout_alignParentEnd="true"
+            android:foreground="?attr/selectableItemBackgroundBorderless"
+            />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

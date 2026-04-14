@@ -16,6 +16,7 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -334,9 +335,23 @@ public class LoginActivity extends AppCompatActivity {
                                 Toast.LENGTH_LONG).show();
 
                     } else {
+
+                        // 🔥 GET FCM TOKEN HERE
+                        FirebaseMessaging.getInstance().getToken()
+                                .addOnSuccessListener(token -> {
+
+                                    FirebaseFirestore.getInstance()
+                                            .collection("artifacts")
+                                            .document("default-app-id")
+                                            .collection("users")
+                                            .document(uid)
+                                            .update("fcmToken", token);
+                                });
+
                         Toast.makeText(LoginActivity.this,
                                 "Login successful",
                                 Toast.LENGTH_SHORT).show();
+
                         startActivity(new Intent(LoginActivity.this, HomeActivity.class));
                         finish();
                     }

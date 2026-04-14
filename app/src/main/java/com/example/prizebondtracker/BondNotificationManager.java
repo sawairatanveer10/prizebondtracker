@@ -23,6 +23,7 @@ public class BondNotificationManager {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final Context context;
     private final String userId;
+    private boolean isFirstLoad = true;
 
     private final SimpleDateFormat format =
             new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
@@ -64,6 +65,7 @@ public class BondNotificationManager {
                         startAdminNotificationListener();
                         startDrawResultListener();
                         checkUpcomingDraws();
+
                     } else {
                         // 🔕 Preference OFF → kuch nahi
                         Log.d(TAG, "Notifications disabled — skipping all checks");
@@ -100,6 +102,10 @@ public class BondNotificationManager {
                     }
 
                     if (snapshots == null) return;
+                    if (isFirstLoad) {
+                        isFirstLoad = false;
+                        return; // ❌ skip old data
+                    }
 
                     for (DocumentChange change : snapshots.getDocumentChanges()) {
 
@@ -116,7 +122,7 @@ public class BondNotificationManager {
 
                         // Admin ka document hai agar type field nahi hai
                         // (admin panel sirf title, message, createdAt, expiresAt save karta hai)
-                        if (type == null) {
+                        if (type == null || "admin".equals(type)) {
                             // Yeh admin notification hai — system notification dikhao
                             // Firestore mein already save hai (admin ne kar di)
                             // Sirf system bar mein dikhao
@@ -156,6 +162,14 @@ public class BondNotificationManager {
 
                     for (DocumentChange change : snapshots.getDocumentChanges()) {
 
+                        Date uploadTime = change.getDocument().getDate("uploadedAt");
+
+                        if (uploadTime == null) continue;
+                        // Check if uploaded recently (last 5 minutes)
+                        long diff = System.currentTimeMillis() - uploadTime.getTime();
+
+                        if (diff > 5 * 60 * 1000) continue; // ❌ ignore old draws
+
                         // Sirf naye draw results par action lo
                         if (change.getType() != DocumentChange.Type.ADDED) continue;
 
@@ -165,10 +179,16 @@ public class BondNotificationManager {
 
                         if (category == null || date == null) continue;
 
-                        String title = "New Draw Result Available!";
-                        String message = "Rs." + category
-                                + " prize bond draw results for "
-                                + date + " are now available.";
+                        List<String> winningNumbers =
+                                (List<String>) change.getDocument().get("numbers");
+
+                        if (winningNumbers != null && !winningNumbers.isEmpty()) {
+                            checkUserWinning(docId, winningNumbers);
+                        }
+
+                        String title = "📢 Draw Result Announced!";
+                        String message = "Rs." + category +
+                                " draw result (" + date + ") is now available. Check now!";
 
                         // Duplicate check karke save + show karo
                         checkAndSave(title, message, "draw_result",
@@ -216,9 +236,9 @@ public class BondNotificationManager {
                             boolean isFuture = !drawDate.before(today);
 
                             if (sameMonth && isFuture) {
-                                String title = "Upcoming Draw";
-                                String message = "Rs." + bond
-                                        + " draw is scheduled on " + dateStr;
+                                String title = "⏰ Upcoming Draw Reminder";
+                                String message = "Rs." + bond +
+                                        " draw is on " + dateStr + ". Stay ready!";
 
                                 // Duplicate check karke save + show karo
                                 checkAndSave(title, message, "upcoming",
@@ -270,7 +290,7 @@ public class BondNotificationManager {
             data.put("title", title);
             data.put("message", message);
             data.put("type", type);
-            data.put("timestamp", new Date());
+            data.put("createdAt", FieldValue.serverTimestamp());
             data.put("read", false);
 
             notifRef.set(data)
@@ -345,5 +365,44 @@ public class BondNotificationManager {
             drawResultListener = null;
             Log.d(TAG, "Draw result listener removed");
         }
+    }
+
+    private void checkUserWinning(String drawId, List<String> winningNumbers) {
+
+        db.collection("artifacts")
+                .document(APP_ID)
+                .collection("users")
+                .document(userId)
+                .collection("bonds")
+                .get()
+                .addOnSuccessListener(snapshot -> {
+
+                    for (DocumentSnapshot bondDoc : snapshot) {
+
+                        String fullBond = bondDoc.getString("number");
+
+                        if (fullBond == null) continue;
+
+                        // 🔥 REMOVE SERIES (A-123456 → 123456)
+                        String bondNumber = fullBond.contains("-")
+                                ? fullBond.split("-")[1]
+                                : fullBond;
+
+                        // ✅ NOW MATCH WILL WORK
+                        if (winningNumbers.contains(bondNumber)) {
+
+                            String title = "🎉 Congratulations!";
+                            String message = "Your bond " + fullBond +
+                                    " has WON a prize!";
+
+                            checkAndSave(
+                                    title,
+                                    message,
+                                    "winning",
+                                    "win_" + fullBond + "_" + drawId
+                            );
+                        }
+                    }
+                });
     }
 }

@@ -71,51 +71,44 @@ public class NotificationActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
 
         loadNotifications();
+        markAllNotificationsAsRead();
     }
+
+    private ListenerRegistration notificationListener;
 
     private void loadNotifications() {
 
-       if (FirebaseAuth.getInstance().getCurrentUser() == null) return;
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) return;
 
-        String userId = FirebaseAuth.getInstance()
-                .getCurrentUser().getUid();
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        Log.d("DEBUG_UID", FirebaseAuth.getInstance().getCurrentUser().getUid());
-
-        db.collection("artifacts")
+        notificationListener = db.collection("artifacts")
                 .document(appId)
                 .collection("users")
                 .document(userId)
                 .collection("notifications")
-                .orderBy("timestamp", Query.Direction.DESCENDING)
-                .get()
-                .addOnSuccessListener(value -> {
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .addSnapshotListener((value, error) -> {
+
+                    if (error != null || value == null) return;
 
                     list.clear();
 
                     for (DocumentSnapshot doc : value.getDocuments()) {
 
-                        String id = doc.getId();
-                        String title = doc.getString("title");
-                        String message = doc.getString("message");
-                        Date timestamp = doc.getDate("timestamp");
-                        Boolean isRead = doc.getBoolean("read");
-
-                        String timeAgo = getTimeAgo(timestamp);
-
                         list.add(new NotificationModel(
-                                id,
-                                title != null ? title : "",
-                                message != null ? message : "",
-                                timeAgo,
-                                isRead != null && isRead
+                                doc.getId(),
+                                doc.getString("title"),
+                                doc.getString("message"),
+                                getTimeAgo(doc.getDate("createdAt")),
+                                Boolean.TRUE.equals(doc.getBoolean("read")),
+                                doc.getString("type")
                         ));
                     }
 
                     adapter.notifyDataSetChanged();
                 });
     }
-
     private String getTimeAgo(Date timestamp) {
 
         if (timestamp == null) return "Just now";
@@ -132,5 +125,38 @@ public class NotificationActivity extends AppCompatActivity {
         if (minutes < 60) return minutes + " minutes ago";
         if (hours < 24) return hours + " hours ago";
         return days + " days ago";
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        if (notificationListener != null) {
+            notificationListener.remove();
+        }
+    }
+    private void markAllNotificationsAsRead() {
+
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) return;
+
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        db.collection("artifacts")
+                .document(appId)
+                .collection("users")
+                .document(userId)
+                .collection("notifications")
+                .whereEqualTo("read", false)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+
+                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                        doc.getReference().update("read", true);
+                    }
+                });
+    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        markAllNotificationsAsRead();
     }
 }

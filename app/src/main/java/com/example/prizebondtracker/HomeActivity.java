@@ -7,15 +7,19 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 
 public class HomeActivity extends AppCompatActivity {
 
     BottomNavigationView bottomNav;
+    private ListenerRegistration blockListener;
 
     // Manager ko field mein rakho taake onDestroy mein stop kar sako
     private BondNotificationManager notificationManager;
@@ -38,6 +42,8 @@ public class HomeActivity extends AppCompatActivity {
 
         // ── Notification Manager initialize karo ────────────────────────────
         notificationManager = new BondNotificationManager(this);
+
+        listenForBlockStatus();
         // ────────────────────────────────────────────────────────────────────
 
         bottomNav = findViewById(R.id.bottomNav);
@@ -69,6 +75,13 @@ public class HomeActivity extends AppCompatActivity {
                 "app_preferences".equals(getIntent().getStringExtra("open_section"))) {
             bottomNav.setSelectedItemId(R.id.nav_profile);
         }
+        String fragment = getIntent().getStringExtra("openFragment");
+
+        if (fragment != null && fragment.equals("schedule")) {
+            loadFragment(new UpcomingDrawsActivity());
+
+            bottomNav.setSelectedItemId(R.id.nav_schedule); // ✅ IMPORTANT
+        }
     }
 
     // ── Memory leak rokne ke liye listener band karo ─────────────────────────
@@ -77,6 +90,9 @@ public class HomeActivity extends AppCompatActivity {
         super.onDestroy();
         if (notificationManager != null) {
             notificationManager.stopListening();
+        }
+        if (blockListener != null) {
+            blockListener.remove();
         }
     }
     // ─────────────────────────────────────────────────────────────────────────
@@ -139,5 +155,53 @@ public class HomeActivity extends AppCompatActivity {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
+    }
+
+    private void listenForBlockStatus() {
+
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        blockListener = FirebaseFirestore.getInstance()
+                .collection("artifacts")
+                .document("default-app-id")
+                .collection("users")
+                .document(userId)
+                .addSnapshotListener((snapshot, error) -> {
+
+                    if (error != null || snapshot == null) return;
+
+                    Boolean blocked = snapshot.getBoolean("blocked");
+
+                    if (Boolean.TRUE.equals(blocked) && !isFinishing()) {
+
+                        new AlertDialog.Builder(this)
+                                .setTitle("Account Blocked")
+                                .setMessage("You are blocked by admin.")
+                                .setCancelable(false)
+                                .setPositiveButton("OK", (dialog, which) -> {
+
+                                    FirebaseAuth.getInstance().signOut();
+
+                                    Intent intent = new Intent(this, LoginActivity.class);
+                                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                    startActivity(intent);
+                                    finish();
+                                })
+                                .show();
+                    }
+                });
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+
+        String fragment = intent.getStringExtra("openFragment");
+
+        if (fragment != null && fragment.equals("schedule")) {
+            loadFragment(new UpcomingDrawsActivity());
+
+            bottomNav.setSelectedItemId(R.id.nav_schedule); // ✅
+        }
     }
 }

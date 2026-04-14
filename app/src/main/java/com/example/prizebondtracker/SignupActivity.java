@@ -14,6 +14,7 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
@@ -99,7 +100,9 @@ public class SignupActivity extends AppCompatActivity {
                             userMap.put("uid", uid);
                             userMap.put("name", name);
                             userMap.put("email", email);
-                            userMap.put("createdAt", System.currentTimeMillis());
+                            userMap.put("createdAt", FieldValue.serverTimestamp());
+                            userMap.put("receive_draw_notification", true);
+                            userMap.put("fcmToken", "");
                             userMap.put("blocked", false);
 
                             firestore.collection("artifacts")
