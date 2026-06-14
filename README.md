@@ -1,0 +1,428 @@
+# Prize Bond Tracker
+
+## Overview
+
+Prize Bond Tracker is an intelligent Android application designed to simplify and modernize prize bond management. The system enables users to securely register prize bonds, track draw results, receive real-time notifications, analyze historical draw records, and view AI-generated winning probabilities for their bonds.
+
+The application maintains a database of prize bond draw results from the past six years. Historical data is automatically collected through web scraping from the National Savings Pakistan website and stored in a centralized database. Administrators can also manually upload and manage draw results through a dedicated desktop-based admin panel.
+
+To assist users in making informed investment decisions, the system uses a Random Forest machine learning model to estimate the winning probability of individual bonds based on historical draw data. Budget-based recommendations are then generated using mathematical formulas and filtering rules to suggest suitable bond denominations within the user's investment range.
+
+The project combines automation, machine learning, historical analytics, and secure data management into a single platform for prize bond holders.
+
+---
+
+# Features
+
+## User Features
+
+### Secure Registration and Login
+
+* Create and manage user accounts securely.
+* Email-based authentication.
+* Password recovery functionality.
+
+### Prize Bond Management
+
+* Add prize bond numbers.
+* Edit or remove registered bonds.
+* Organize bonds by denomination.
+
+### Bulk Bond Registration
+
+* Register multiple bonds simultaneously.
+* Enter a starting and ending bond number.
+* Automatically generate and store all bonds within the selected range.
+
+### Historical Draw Results
+
+* View prize bond draw results from the past six years.
+* Search results by denomination, draw number, or date.
+* Access historical records directly from the mobile application.
+
+### Draw Result Tracking
+
+* View the latest prize bond draw results.
+* Automatically match registered bonds against winning numbers.
+* Instantly identify winning bonds.
+
+### Notifications
+
+* Upcoming draw reminders.
+* Winning result alerts.
+* Important application updates.
+
+### Winning Probability Analysis
+
+* AI-generated winning probability for each registered bond.
+* Probability ranking among saved bonds.
+* Historical performance analysis.
+
+### Budget-Based Recommendations
+
+* Enter available investment budget.
+* Receive recommendations based on affordability and predicted probability.
+* View suggested bond denominations within budget.
+
+### Profile Management
+
+* Update personal information.
+* Change password.
+* Manage account settings.
+
+---
+
+## Administrator Features
+
+### Secure Admin Login
+
+* Role-based authentication.
+* Protected access to administrative functions.
+
+### User Management
+
+* View registered users.
+* Manage user accounts.
+* Activate or block users.
+
+### Draw Result Management
+
+* Add official draw results manually.
+* Upload draw data in bulk.
+* Edit existing records.
+* Verify scraped results before publishing.
+
+### Historical Data Management
+
+* Manage six years of draw history.
+* Correct inaccurate records.
+* Maintain database consistency.
+
+### System Monitoring
+
+* Monitor application performance.
+* Verify database operations.
+* Manage system data.
+
+---
+
+# Historical Draw Data Module
+
+The application stores and maintains prize bond draw results from the previous six years.
+
+## Automated Data Collection
+
+Historical draw results are collected from the National Savings Pakistan website through a web scraping module.
+
+The scraping process:
+
+* Retrieves official draw results.
+* Extracts winning bond numbers.
+* Processes and validates data.
+* Stores results in Firebase Firestore.
+* Updates historical records automatically.
+
+## Manual Data Entry
+
+Administrators can manually:
+
+* Add new draw results.
+* Update missing records.
+* Correct incorrect entries.
+* Verify scraped data.
+
+This hybrid approach ensures reliable and accurate historical records.
+
+---
+
+# Artificial Intelligence Module
+
+## Purpose
+
+The AI module helps users estimate the likelihood of winning by analyzing historical prize bond draw records.
+
+## Machine Learning Model
+
+### Random Forest Classifier
+
+Random Forest is the only machine learning model used in the project.
+
+The model analyzes:
+
+* Historical draw results
+* Bond denominations
+* Previous winning trends
+* Draw frequency patterns
+
+Using this information, the model predicts the winning probability of individual prize bonds.
+
+## AI Output
+
+For each registered bond, the system provides:
+
+* Predicted winning probability
+* Bond ranking based on probability
+* Historical trend insights
+
+These predictions assist users in evaluating their bonds more effectively.
+
+---
+
+# Budget-Based Recommendation System
+
+The recommendation system uses probability predictions generated by the Random Forest model together with predefined mathematical formulas.
+
+No additional machine learning models are used.
+
+## Recommendation Process
+
+1. Historical draw data is analyzed.
+2. Random Forest predicts winning probabilities.
+3. User enters an investment budget.
+4. The system filters bond options based on affordability.
+5. Suitable recommendations are generated.
+
+## Benefits
+
+* Budget-aware suggestions
+* Practical investment guidance
+* Fast recommendation generation
+* Easy maintenance and scalability
+
+---
+
+# System Architecture
+
+## Android Application
+
+Responsible for:
+
+* User authentication
+* Bond registration
+* Historical result viewing
+* Notification management
+* Probability visualization
+* Recommendation display
+
+## Firebase Backend
+
+Responsible for:
+
+* User authentication
+* Firestore database storage
+* Cloud messaging services
+* Real-time synchronization
+
+## Data Collection Layer
+
+Responsible for:
+
+* Scraping National Savings draw results
+* Processing historical data
+* Updating databases
+* Supporting manual uploads
+
+## AI Engine
+
+Responsible for:
+
+* Data preprocessing
+* Probability prediction
+* Recommendation support
+
+## Admin Panel
+
+Responsible for:
+
+* User management
+* Draw result management
+* Historical data maintenance
+* System monitoring
+
+---
+
+# Technology Stack
+
+## Mobile Application
+
+* Java
+* XML
+* Android Studio
+
+## Backend Services
+
+* Firebase Authentication
+* Firebase Firestore
+* Firebase Cloud Messaging (FCM)
+
+## Artificial Intelligence
+
+* Python
+* Scikit-Learn
+* Pandas
+* NumPy
+* Random Forest Classifier
+
+## Web Scraping & Data Processing
+
+* Python
+* BeautifulSoup
+* Requests
+* Pandas
+
+## Desktop Admin Panel
+
+* C#
+* .NET Framework
+* Visual Studio
+
+## Additional Libraries
+
+* Firebase SDKs
+* iText PDF Library
+
+---
+
+# Functional Requirements
+
+## User Module
+
+* Register account
+* Login securely
+* Add prize bonds
+* Bulk bond registration
+* View historical draw results
+* View latest draw results
+* Receive notifications
+* View winning probabilities
+* Get budget-based recommendations
+* Manage profile
+
+## Admin Module
+
+* Secure login
+* User management
+* Historical data management
+* Draw result management
+* System monitoring
+
+---
+
+# Non-Functional Requirements
+
+## Security
+
+* Secure authentication
+* Encrypted user data
+* Protected database access
+
+## Reliability
+
+* Accurate draw result updates
+* Consistent notifications
+* Reliable historical records
+
+## Performance
+
+* Fast data retrieval
+* Efficient AI calculations
+* Responsive mobile application
+
+## Usability
+
+* User-friendly interface
+* Simple navigation
+* Easy-to-use functionality
+
+## Availability
+
+* 24/7 accessibility
+* Minimal downtime
+
+---
+
+# Software Requirements
+
+## Development Environment
+
+* Windows 10/11
+* Android Studio
+* Visual Studio
+* Python 3.x
+* Firebase Console
+
+## Python Libraries
+
+pip install pandas numpy scikit-learn beautifulsoup4 requests
+
+## Android Dependencies
+
+* Firebase Authentication
+* Firebase Firestore
+* Firebase Cloud Messaging
+
+---
+
+# Hardware Requirements
+
+Minimum Requirements:
+
+* 8 GB RAM
+* 100 GB Storage
+* Internet Connection
+* Android Smartphone
+* Desktop or Laptop Computer
+
+---
+
+# Project Objectives
+
+* Automate prize bond management.
+* Provide six years of historical draw records.
+* Eliminate manual result checking.
+* Deliver timely notifications.
+* Predict winning probabilities using AI.
+* Generate budget-based recommendations.
+* Securely store user and bond information.
+* Improve decision-making through data-driven insights.
+
+---
+
+# Future Enhancements
+
+* Automatic scheduled scraping of new draw results.
+* Advanced statistical dashboards.
+* Export reports in PDF format.
+* Multi-language support.
+* Enhanced probability analytics.
+* Cloud-based reporting and visualization.
+
+---
+
+# Project Team
+
+## Supervisor
+
+Mr. Bilal Arshad
+Lecturer, GIMS
+
+## Team Members
+
+### Muhammad Usman
+### Sawaira Tanveer
+
+### Zain Ul Hassan
+
+---
+
+# Institution
+
+Gujrat Institute of Management Sciences (GIMS)
+
+PMAS-Arid Agriculture University, Rawalpindi
+
+---
+
+# License
+
+This project is developed as a Final Year Project (FYP) for academic and research purposes at Gujrat Institute of Management Sciences, PMAS-Arid Agriculture University, Rawalpindi.
